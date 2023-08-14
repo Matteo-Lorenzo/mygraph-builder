@@ -1,0 +1,17 @@
+# Ignora i file di sistema Mac
+.DS_store
+
+# Ignora la cartella node_modules
+node_modules
+
+# Ignora la cartella dist
+dist
+
+# Ignora la cartella tests
+tests
+
+# Ignora tutti i file .txt
+*.txt
+
+# Ignora il file di environment
+.env
