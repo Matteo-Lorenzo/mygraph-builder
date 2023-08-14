@@ -1,4 +1,4 @@
-import { Table, Column, Model, BelongsTo, ForeignKey, HasMany } from 'sequelize-typescript';
+import { Table, Column, Model, BelongsTo, ForeignKey, HasMany, Unique } from 'sequelize-typescript';
 import { Optional } from 'sequelize';
 import { get_alpha, MyGraphError } from '../utilities/mylib';
 import { StatusCodes } from "http-status-codes";
@@ -38,6 +38,7 @@ class GraphModel extends Model<GraphAttributes, GraphCreationAttributes>  {
     @BelongsTo(() => User)
     user!: User;
 
+    @Unique
     @Column
     name!: string;
 

@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 import { GraphModel, User, History } from "../models";
 import { cambia_peso_list, cambia_peso_info, token_info } from "../declarations"
 import { MyGraphError } from "../utilities/mylib";
+import {authorize_user} from "../utilities/security"
 import { StatusCodes } from "http-status-codes";
 
 interface IGraphDataAccess {
@@ -59,6 +60,7 @@ class GraphDataAccess implements IGraphDataAccess {
     }
 
     async cambiaPeso(graph_id: number, nuovi_pesi: cambia_peso_list, user_id: number): Promise<GraphModel | null> {
+        /* In memoria del codice che fu ....
         // carico l'utente corrente
         const the_user = await User.findByPk(user_id);
         // questa funzione può essere eseguita solo per utenti registrati che ...
@@ -69,6 +71,8 @@ class GraphDataAccess implements IGraphDataAccess {
         if (the_user?.role !== 'user') { 
             throw new MyGraphError(StatusCodes.UNAUTHORIZED,"Utente non autorizzato");
         }
+        */
+        await authorize_user(user_id, 'user');
         try {
                 const graph = await GraphModel.findByPk(graph_id);
                 // il data access usa le caratteristiche del modello per implementare quanto richiesto dal controller

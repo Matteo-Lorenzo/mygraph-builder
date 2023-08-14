@@ -1,4 +1,4 @@
-import { Table, Column, Model, HasMany } from 'sequelize-typescript';
+import { Table, Column, Model, HasMany, Unique } from 'sequelize-typescript';
 import { Optional } from 'sequelize';
 
 
@@ -30,6 +30,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
     @Column
     surname!: string;
 
+    @Unique
     @Column
     email!: string;
 
