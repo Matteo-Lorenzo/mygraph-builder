@@ -1,5 +1,8 @@
 import { Op } from "sequelize";
 import { User } from "../models";
+import {authorize_user} from "../utilities/security"
+import { MyGraphError } from "../utilities/mylib";
+import { StatusCodes } from "http-status-codes";
 
 interface IUserDataAccess {
     save(user: User): Promise<User>;
@@ -14,7 +17,7 @@ interface IUserDataAccess {
 
 interface SearchCondition {
     [key: string]: any;
-  }
+}
 
 class UserDataAccess implements IUserDataAccess {
     async save(user: User): Promise<User> {
@@ -22,7 +25,7 @@ class UserDataAccess implements IUserDataAccess {
             return await User.create(user);
         } catch (err) {
             console.log(err);
-            throw new Error("Errore durante la creazione dell'utente!");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore durante la creazione dell'utente!");
         }
     }
 
@@ -45,16 +48,32 @@ class UserDataAccess implements IUserDataAccess {
 
             return await User.findAll({ where: condition });
         } catch (error) {
-            throw new Error("Errore nel caricamento degli utenti");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento degli utenti");
         }
     }
 
     async retrieveById(id: number): Promise<User | null> {
         try {
             return await User.findByPk(id);
-          } catch (error) {
-            throw new Error("Errore nel caricamento dell'utente");
-          }
+        } catch (error) {
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento dell'utente");
+        }
+    }
+
+    async aggiungiCredito(id: number, credito: number, user_id: number): Promise<User | null> {
+        await authorize_user(user_id, 'admin');
+        try {
+            return await User.findByPk(id).then(
+                (user) => {
+                    user!.credits += credito;
+                    return user?.save();
+                },
+                (err) => {
+                    return err;
+                });
+        } catch (error) {
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento del credito");
+        }
     }
 
 }

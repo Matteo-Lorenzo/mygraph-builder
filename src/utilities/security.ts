@@ -2,7 +2,8 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from "express";
 import userDataAccess from "../data_access/user.data_access";
 import { StatusCodes } from "http-status-codes";
-import { isNumeric } from "./mylib";
+import { isNumeric, MyGraphError } from "./mylib";
+import { User } from "../models"
 
 
 import { jwt_info, token_info } from '../declarations'
@@ -35,7 +36,7 @@ export async function check_token(req: Request, role: string): Promise<token_inf
         return info;
 
     } catch (err) {
-        throw new Error("Token non valido");
+        throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Token non valido");
     }
 }
 
@@ -50,11 +51,11 @@ export function get_token(req: Request): jwt_info {
         if ((typeof (result.user_id) === 'string') && (isNumeric(result.user_id))) {
             return result;
         } else {
-            throw new Error("UserID non valido");
+            throw new MyGraphError(StatusCodes.UNAUTHORIZED, "UserID non valido");
         }
 
     } catch (err) {
-        throw new Error("Token non valido");
+        throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Token non valido");
     }
 }
 
@@ -83,4 +84,21 @@ export function decode_token(req: Request, res: Response, next: NextFunction) {
     }
 }
 
-
+export async function authorize_user(user_id: number, role: string) {
+    // carico l'utente corrente
+    const the_user = await User.findByPk(user_id);
+    // questa funzione può essere eseguita solo per utenti registrati che ...
+    if (the_user === null) {
+        throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Utente non registrato");
+    };
+    if (the_user.active) {
+        // ... hanno il ruolo richiesto
+        if (role !== "") {
+            if (the_user?.role !== role) {
+                throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Utente non autorizzato");
+            }
+        }
+    } else {
+        throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Utente non attivo");
+    }
+}

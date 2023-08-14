@@ -1,6 +1,7 @@
 import { Table, Column, Model, BelongsTo, ForeignKey, HasMany } from 'sequelize-typescript';
 import { Optional } from 'sequelize';
-import { get_alpha } from '../utilities/mylib';
+import { get_alpha, MyGraphError } from '../utilities/mylib';
+import { StatusCodes } from "http-status-codes";
 
 
 import User from './user.model'
@@ -85,7 +86,7 @@ class GraphModel extends Model<GraphAttributes, GraphCreationAttributes>  {
             // @ts-ignore
             return grafo[start][stop]
         } else {
-            throw new Error('Qualcosa è andato storto nella ricerca del peso');
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,'Qualcosa è andato storto nella ricerca del peso');
         }
     }
     
@@ -102,7 +103,7 @@ class GraphModel extends Model<GraphAttributes, GraphCreationAttributes>  {
             grafo[start][stop] = peso_calcolato // modifico il peso
             this.actualgraph = JSON.stringify(grafo); // aggiorno la relativa prorietà
         } else {
-            throw new Error('Qualcosa è andato storto nella modifica del peso');
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,'Qualcosa è andato storto nella modifica del peso');
         }
     }
 

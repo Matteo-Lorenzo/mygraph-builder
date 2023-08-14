@@ -1,6 +1,8 @@
 import { Op } from "sequelize";
 import { GraphModel, User, History } from "../models";
 import { cambia_peso_list, cambia_peso_info, token_info } from "../declarations"
+import { MyGraphError } from "../utilities/mylib";
+import { StatusCodes } from "http-status-codes";
 
 interface IGraphDataAccess {
     save(graph: GraphModel): Promise<GraphModel>;
@@ -25,7 +27,7 @@ class GraphDataAccess implements IGraphDataAccess {
             return await GraphModel.create(graph);
         } catch (err) {
             console.log(err);
-            throw new Error("Errore nella creazione del grafo!");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nella creazione del grafo!");
         }
     }
 
@@ -43,7 +45,7 @@ class GraphDataAccess implements IGraphDataAccess {
 
             return await GraphModel.findAll({ where: condition });
         } catch (error) {
-            throw new Error("Errore nel caricamento dei grafi!");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento dei grafi!");
         }
     }
 
@@ -52,7 +54,7 @@ class GraphDataAccess implements IGraphDataAccess {
             console.log(id);
             return await GraphModel.findByPk(id);
         } catch (error) {
-            throw new Error("Errore nel caricamento del grafo!");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento del grafo!");
         }
     }
 
@@ -61,11 +63,11 @@ class GraphDataAccess implements IGraphDataAccess {
         const the_user = await User.findByPk(user_id);
         // questa funzione può essere eseguita solo per utenti registrati che ...
         if (the_user === null) {
-            throw new Error("Utente non registrato");
+            throw new MyGraphError(StatusCodes.UNAUTHORIZED,"Utente non registrato");
         };
         // ... hanno il ruolo 'user'
         if (the_user?.role !== 'user') { 
-            throw new Error("Utente non autorizzato");
+            throw new MyGraphError(StatusCodes.UNAUTHORIZED,"Utente non autorizzato");
         }
         try {
                 const graph = await GraphModel.findByPk(graph_id);
@@ -86,7 +88,7 @@ class GraphDataAccess implements IGraphDataAccess {
 
                 return await GraphModel.findByPk(graph_id);
         } catch (error) {
-            throw new Error("Errore nell'aggiornamento dei pesi!");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nell'aggiornamento dei pesi!");
         }
     }
 }

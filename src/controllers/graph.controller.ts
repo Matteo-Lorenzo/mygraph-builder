@@ -3,7 +3,7 @@ import { GraphModel } from "../models";
 import graphDataAccess from "../data_access/graph.data_access";
 import { StatusCodes } from "http-status-codes";
 import { token_info, cambia_peso_info, cambia_peso_list } from "../declarations"
-import { check_token } from "../utilities/security"
+import { manage_error } from "../utilities/mylib";
 
 export default class GraphController {
     async create(req: Request, res: Response) {
@@ -22,9 +22,7 @@ export default class GraphController {
             const savedGraph = await graphDataAccess.save(graph);
             res.status(StatusCodes.CREATED).send(savedGraph);
         } catch (err) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-                message: "Si è verificato un errore durante la creazione del grafo."
-            });
+            manage_error(err, res);
         }
     }
 
@@ -37,9 +35,7 @@ export default class GraphController {
             const graph = await graphDataAccess.retrieveAll({ name });
             res.status(StatusCodes.OK).send(graph);
         } catch (err) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-                message: "Si è verificato un errore durante il recupero dei grafi."
-            });
+            manage_error(err, res);
         }
     }
 
@@ -55,9 +51,7 @@ export default class GraphController {
                     message: `Grafo con id=${id} non trovato.`
                 });
         } catch (err) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-                message: `Errore del server durante la ricerca del grafo.`
-            });
+            manage_error(err, res);
         }
     }
 
@@ -70,15 +64,7 @@ export default class GraphController {
             const modifiedGraph = await graphDataAccess.cambiaPeso(parseInt(req.params.id), lista_pesi, parseInt(user_id));
             res.status(StatusCodes.CREATED).send(modifiedGraph);
         } catch (err) {
-            if (err instanceof Error) {
-                res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-                    message: err.message
-                });
-            } else {
-                res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-                    message: "Errore del server durante la modifica del grafo."
-                });
-            }
+            manage_error(err, res);
         }
     }
 }

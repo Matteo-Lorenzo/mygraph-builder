@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { User } from "../models";
 import userDataAccess from "../data_access/user.data_access";
-import {StatusCodes} from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
+import { manage_error } from "../utilities/mylib";
 
 export default class UserController {
     async create(req: Request, res: Response) {
@@ -21,9 +22,7 @@ export default class UserController {
             const savedUser = await userDataAccess.save(user);
             res.status(StatusCodes.CREATED).send(savedUser);
         } catch (err) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-                message: "Si è verificato un errore durante la creazione dell'utente."
-            });
+            manage_error(err, res);
         }
     }
 
@@ -38,27 +37,46 @@ export default class UserController {
             const users = await userDataAccess.retrieveAll({ userid, email, active });
             res.status(StatusCodes.OK).send(users);
         } catch (err) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-                message: "Si è verificato un errore durante il recupero degli utenti."
-            });
+            manage_error(err, res);
         }
     }
 
     async findOne(req: Request, res: Response) {
         const id: number = parseInt(req.params.id);
-    
+
         try {
-          const user = await userDataAccess.retrieveById(id);
-    
-          if (user) res.status(StatusCodes.OK).send(user);
-          else
-            res.status(StatusCodes.NOT_FOUND).send({
-              message: `Utente con id=${id} non trovato.`
-            });
+            const user = await userDataAccess.retrieveById(id);
+
+            if (user instanceof User) {
+                res.status(StatusCodes.OK).send(user);
+            }
+            else
+                res.status(StatusCodes.NOT_FOUND).send({
+                    message: `Utente con id=${id} non trovato.`
+                });
         } catch (err) {
-          res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-            message: `Errore del server durante la ricerca dell'utente.`
-          });
+            manage_error(err, res);
         }
-      }
+    }
+
+    async refill(req: Request, res: Response) {
+        const user_id = req.headers['user_id'] as string;
+        console.log('Utente corrente ', req.headers['user_id']);
+        const id: number = parseInt(req.params.id);
+
+        try {
+            const user = await userDataAccess.aggiungiCredito(id, Number(req.body.refill), Number(user_id));
+            if (user instanceof User) {
+                res.status(StatusCodes.OK).send(user);
+            }
+            else
+                res.status(StatusCodes.NOT_FOUND).send({
+                    message: `Utente con id=${id} non trovato.`
+                });
+        } catch (err) {
+            manage_error(err, res);
+
+        }
+    }
+
 }

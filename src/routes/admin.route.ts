@@ -22,7 +22,7 @@ class AdminRoutes {
     this.router.get("/user/:id", this.userController.findOne);
 
     // Aggiungi credito all'utente con id indicato
-    //this.router.put("user/:id/refill", this.controller.update);
+    this.router.put("/user/:id/refill", this.userController.refill);
 
     
   }
