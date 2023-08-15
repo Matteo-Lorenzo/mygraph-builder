@@ -24,6 +24,9 @@ class AppRoutes {
     // Cambia peso al grafo con id
     this.router.put("/graph/:id", this.graphController.cambiaPeso);
 
+    // Esegui un grafo per id specificando i nodi start e stop
+    this.router.get("/graph/:id/start/:start/stop/:stop", this.graphController.execute);
+
     // ecc.
   }
 }

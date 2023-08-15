@@ -102,3 +102,4 @@ export async function authorize_user(user_id: number, role: string) {
         throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Utente non attivo");
     }
 }
+

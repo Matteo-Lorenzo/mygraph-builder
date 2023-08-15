@@ -67,4 +67,20 @@ export default class GraphController {
             manage_error(err, res);
         }
     }
+
+    async execute(req: Request, res: Response) {
+        const user_id = req.headers['user_id'] as string;
+        const id: number = parseInt(req.params.id);
+        const start: string = req.params.start;
+        const stop: string = req.params.stop;
+
+        // Interazione con il data access
+        try {
+            const result = await graphDataAccess.execute(id, start, stop, parseInt(user_id));
+            res.status(StatusCodes.OK).send(result);
+        } catch (err) {
+            manage_error(err, res);
+        }
+
+    }
 }

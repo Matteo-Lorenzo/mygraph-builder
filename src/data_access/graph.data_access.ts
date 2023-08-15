@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import { GraphModel, User, History } from "../models";
 import { cambia_peso_list, cambia_peso_info, token_info } from "../declarations"
 import { MyGraphError } from "../utilities/mylib";
-import {authorize_user} from "../utilities/security"
+import { authorize_user } from "../utilities/security"
 import { StatusCodes } from "http-status-codes";
 
 interface IGraphDataAccess {
@@ -28,7 +28,7 @@ class GraphDataAccess implements IGraphDataAccess {
             return await GraphModel.create(graph);
         } catch (err) {
             console.log(err);
-            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nella creazione del grafo!");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nella creazione del grafo!");
         }
     }
 
@@ -46,19 +46,20 @@ class GraphDataAccess implements IGraphDataAccess {
 
             return await GraphModel.findAll({ where: condition });
         } catch (error) {
-            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento dei grafi!");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nel caricamento dei grafi!");
         }
     }
 
     async retrieveById(id: number): Promise<GraphModel | null> {
-        try {
-            console.log(id);
-            return await GraphModel.findByPk(id);
-        } catch (error) {
-            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento del grafo!");
+        //await authorize_user(user_id, 'user');
+        const graph = await GraphModel.findByPk(id);
+        if (!(graph instanceof GraphModel)) {
+            throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
         }
+        return await GraphModel.findByPk(id);
     }
 
+   
     async cambiaPeso(graph_id: number, nuovi_pesi: cambia_peso_list, user_id: number): Promise<GraphModel | null> {
         /* In memoria del codice che fu ....
         // carico l'utente corrente
@@ -73,26 +74,42 @@ class GraphDataAccess implements IGraphDataAccess {
         }
         */
         await authorize_user(user_id, 'user');
+        const graph = await GraphModel.findByPk(graph_id);
+        if (!(graph instanceof GraphModel)) {
+            throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
+        }
         try {
-                const graph = await GraphModel.findByPk(graph_id);
-                // il data access usa le caratteristiche del modello per implementare quanto richiesto dal controller
-                nuovi_pesi.forEach(nuovo_peso => {
-                    // il modello sa modificare un peso
-                    graph?.set_peso(nuovo_peso.node_start, nuovo_peso.node_stop, nuovo_peso.peso);
-                });
-                await graph?.save()
-                // se sono arrivato qui significa che i pesi sono stati aggiornati nel modello e serializzati nel DB
+            // il data access usa le caratteristiche del modello per implementare quanto richiesto dal controller
+            nuovi_pesi.forEach(nuovo_peso => {
+                // il modello sa modificare un peso
+                graph?.set_peso(nuovo_peso.node_start, nuovo_peso.node_stop, nuovo_peso.peso);
+            });
+            await graph?.save()
+            // se sono arrivato qui significa che i pesi sono stati aggiornati nel modello e serializzati nel DB
 
-                // verificare come realizzare questa funzione usando sequelize
-                const history = new History();
-                history.user_id = user_id;
-                history.changes = JSON.stringify(nuovi_pesi);
-                history.graph_id = graph_id;
-                history.save();
+            // verificare come realizzare questa funzione usando sequelize
+            const history = new History();
+            history.user_id = user_id;
+            history.changes = JSON.stringify(nuovi_pesi);
+            history.graph_id = graph_id;
+            history.save();
 
-                return await GraphModel.findByPk(graph_id);
+            return await GraphModel.findByPk(graph_id);
         } catch (error) {
-            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nell'aggiornamento dei pesi!");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nell'aggiornamento dei pesi!");
+        }
+    }
+
+    async execute(graph_id: number, start: string, stop: string, user_id:number): Promise<object| null>{
+        await authorize_user(user_id, 'user');
+        const graph = await GraphModel.findByPk(graph_id);
+        if (!(graph instanceof GraphModel)) {
+            throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
+        }
+        try {
+            return graph.execute(start, stop);
+        } catch (error) {
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nella valutazione del percorso!");
         }
     }
 }
