@@ -27,6 +27,12 @@ class AppRoutes {
     // Esegui un grafo per id specificando i nodi start e stop
     this.router.get("/graph/:id/start/:start/stop/:stop", this.graphController.execute);
 
+    // Simulazione con range di pesi (questa rotta è una POST di interrogazione, non apporta modifiche ai dati)
+    this.router.post("/graph/:id/simulate", this.graphController.simulate);
+
+    // Recupera la history del grafo con chiave id
+    this.router.get("/graph/:id/history", this.graphController.get_history);
+
     // ecc.
   }
 }

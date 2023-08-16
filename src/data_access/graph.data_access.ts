@@ -1,9 +1,11 @@
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import { GraphModel, User, History } from "../models";
-import { cambia_peso_list, cambia_peso_info, token_info } from "../declarations"
-import { MyGraphError } from "../utilities/mylib";
+import { cambia_peso_list, simulation_request } from "../declarations"
+import { MyGraphError, generate_pdf } from "../utilities/mylib";
 import { authorize_user } from "../utilities/security"
 import { StatusCodes } from "http-status-codes";
+import { json2csv } from "json-2-csv"
+
 
 interface IGraphDataAccess {
     save(graph: GraphModel): Promise<GraphModel>;
@@ -16,7 +18,7 @@ interface IGraphDataAccess {
     */
 }
 
-interface SearchCondition {
+type SearchCondition = {
     [key: string]: any;
 }
 
@@ -59,7 +61,7 @@ class GraphDataAccess implements IGraphDataAccess {
         return await GraphModel.findByPk(id);
     }
 
-   
+
     async cambiaPeso(graph_id: number, nuovi_pesi: cambia_peso_list, user_id: number): Promise<GraphModel | null> {
         /* In memoria del codice che fu ....
         // carico l'utente corrente
@@ -100,7 +102,7 @@ class GraphDataAccess implements IGraphDataAccess {
         }
     }
 
-    async execute(graph_id: number, start: string, stop: string, user_id:number): Promise<object| null>{
+    async execute(graph_id: number, start: string, stop: string, user_id: number): Promise<object | null> {
         await authorize_user(user_id, 'user');
         const graph = await GraphModel.findByPk(graph_id);
         if (!(graph instanceof GraphModel)) {
@@ -112,6 +114,97 @@ class GraphDataAccess implements IGraphDataAccess {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nella valutazione del percorso!");
         }
     }
+
+
+    async simulate(graph_id: number, comando: simulation_request, user_id: number): Promise<object | null> {
+        await authorize_user(user_id, 'user');
+        const graph = await GraphModel.findByPk(graph_id);
+        if (!(graph instanceof GraphModel)) {
+            throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
+        }
+        try {
+            return graph.simulate(comando);
+        } catch (error) {
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nella valutazione del percorso!");
+        }
+    }
+
+
+    async get_history(graph_id: number, periodo: string, formato: string, user_id: number): Promise<object | string | null> {
+        await authorize_user(user_id, 'user');
+
+
+        //  da migliorare
+        let criterion = (periodo: string) => {
+            const query_periodo = periodo.split('|');
+            const start_date = query_periodo[0] + ' 00:00:00.0+02'
+            const end_date = query_periodo[1] + ' 23:59:59.0+02'
+
+            console.log(query_periodo);
+            // data inizio e data fine indicate
+            if ((query_periodo[0] !== '') && (query_periodo[1] !== '')) {
+                return { updatedAt: { [Op.between]: [start_date, end_date] } };
+            }
+            // solo data inizio indicata
+            else if ((query_periodo[0] !== '') && (query_periodo[1] === '')) {
+                return { updatedAt: { [Op.gte]: start_date } };
+            }
+            // solo data fine indicata
+            else if ((query_periodo[0] === '') && (query_periodo[1] !== '')) {
+                return { updatedAt: { [Op.lte]: end_date } };
+            }
+            // ricerca senza date
+            else if ((query_periodo[0] === '') && (query_periodo[1] === '')) {
+                return {};
+            }
+        }
+
+        const graph = await GraphModel.findByPk(graph_id,
+            {
+                include: [
+                    {
+                        model: History,
+                        where: criterion(periodo),
+                        include: [
+                            {
+                                model: User,
+                                attributes:['email']
+                            },
+                            {
+                                model: GraphModel,
+                                attributes:['name']
+                            }
+                        ]
+                    },
+                ],
+                order: [
+                    [{ model: History, as: 'history' }, 'updatedAt', 'DESC'],
+                ],
+            });
+
+
+        if (!(graph instanceof GraphModel)) {
+            throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
+        }
+        try {
+            let dati: object[] = [];
+            if (formato === 'csv') {
+
+                graph.history.forEach(element => {
+                    dati.push(element.dataValues)
+                });
+                console.log(dati);
+                return json2csv(dati);
+            } else if (formato === 'pdf') {
+                const pdf = await generate_pdf(graph.history);
+                return pdf;
+            }
+            return graph.history;
+        } catch (error) {
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nel calcolo della statistica!");
+        }
+    }
+
 }
 
 

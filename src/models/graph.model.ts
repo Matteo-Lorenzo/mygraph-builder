@@ -2,13 +2,14 @@ import { Table, Column, Model, BelongsTo, ForeignKey, HasMany, Unique } from 'se
 import { Optional } from 'sequelize';
 import { get_alpha, MyGraphError } from '../utilities/mylib';
 import { StatusCodes } from "http-status-codes";
+import { simulation_request } from '../declarations';
 import Graph from 'node-dijkstra';
 
 import User from './user.model'
 import History from './history.model'
 
 
-type graph_info = {
+interface graph_info {
     nodi: Set<string>;
     archi: number;
 };
@@ -31,6 +32,18 @@ interface GraphAttributes {
     initialgraph: string;
     actualgraph: string;
     user_id?: number;
+}
+
+interface peso_info {
+    path: string[];
+    cost: number;
+    peso: number;
+}
+
+interface simul_result {
+    risultati: peso_info[];
+    best_result: number;
+    best_config: Grafo;
 }
 
 
@@ -127,26 +140,37 @@ class GraphModel extends Model<GraphAttributes, GraphCreationAttributes>  {
         }
     }
 
-    /* Work in progress
-    simulate(node_start: string, node_stop: string, peso_start: number, peso_stop: number, passo: number): object {
+ 
+    simulate(comando: simulation_request): object {
 
-        for (let peso = peso_start; peso <= peso_stop; peso += passo) {
-            const the_graph = JSON.parse(this.actualgraph) as Grafo;
-            if (typeof (the_graph[node_start][node_stop]) === 'number') {
-                the_graph[node_start][node_stop] = peso // modifico il peso
+        let stat: simul_result = {
+            risultati: [],
+            best_result: Number.MAX_VALUE,
+            best_config: {}
+        };
+        const json_graph = JSON.parse(this.initialgraph) as Grafo;
+        for (let peso = comando.peso_start; peso <= comando.peso_stop; peso += comando.passo) {
+            let the_graph = json_graph;
+            if (typeof (the_graph[comando.arco_start][comando.arco_stop]) === 'number') {   // selezione del peso
+                the_graph[comando.arco_start][comando.arco_stop] = peso // modifico il peso
                 const dijkstra = new Graph(the_graph);
-                let result: PathResult = dijkstra.path(start, stop, { cost: true }) as PathResult;
+                let result: PathResult = dijkstra.path(comando.percorso_start, comando.percorso_stop, { cost: true }) as PathResult;
+
+                stat.risultati.push({
+                    path: result.path,
+                    cost: result.cost,
+                    peso: peso
+                });
+                if (result.cost < stat.best_result) {
+                    stat.best_result = result.cost;
+                    stat.best_config = JSON.parse(JSON.stringify(the_graph));   // deep copy
+                }
             } else {
-                throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, 'Qualcosa è andato storto nella modifica del peso');
+                throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, 'Qualcosa è andato storto nella simulazione');
             }
-
-
         }
-
-        return {}
+        return stat;
     }
-    */
-
 }
 
 
