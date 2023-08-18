@@ -22,10 +22,14 @@ const app: Express = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// attivo il middleware personalizzato per la decodifica del token e 
+// l'inserimento del current_user_id nell'header della richiesta per averlo
+// disponibile in qualsisi punto della catena di gestione delle rotte
 app.use(decode_token);
 
 
-// attivazione delle rotte
+// attivazione dei middleware per la gestione delle rotte
+// realizzati utilizzando la classe Router di express
 app.use("/api/admin", adminRoutes);
 app.use("/api/app", appRoutes);
 

@@ -1,4 +1,4 @@
-import { Table, Column, Model, HasMany, Unique } from 'sequelize-typescript';
+import { Table, Column, Model, HasMany, Unique, DataType } from 'sequelize-typescript';
 import { Optional } from 'sequelize';
 
 
@@ -37,7 +37,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
     @Column
     role!: string;
 
-    @Column
+    @Column(DataType.FLOAT)
     credits!: number;
 
     @Column

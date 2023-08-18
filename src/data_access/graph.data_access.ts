@@ -6,11 +6,13 @@ import { authorize_user } from "../utilities/security"
 import { StatusCodes } from "http-status-codes";
 import { json2csv } from "json-2-csv"
 
+import Graph from 'node-dijkstra'
+
 
 interface IGraphDataAccess {
-    save(graph: GraphModel): Promise<GraphModel>;
-    retrieveAll(searchParams: { name: string }): Promise<GraphModel[]>;
-    retrieveById(id: number): Promise<GraphModel | null>;
+    save(graph: GraphModel, current_user_id: number): Promise<GraphModel>;
+    // retrieveAll(searchParams: { name: string }): Promise<GraphModel[]>;
+    retrieveById(id: number, current_user_id: number): Promise<GraphModel | null>;
     /*
     update(graph: GraphModel): Promise<number>;
     delete(GraphId: number): Promise<number>;
@@ -22,18 +24,34 @@ type SearchCondition = {
     [key: string]: any;
 }
 
+type Grafo = {
+    [key: string]: { [key: string]: number };
+}
+
 class GraphDataAccess implements IGraphDataAccess {
-    async save(graph: GraphModel): Promise<GraphModel> {
+    async save(graph: GraphModel, current_user_id: number): Promise<GraphModel> {
         try {
-            graph.initialgraph = JSON.stringify(graph.initialgraph);
+            const foo = graph.initialgraph as any;
+            const bar = new Graph(foo as Grafo);        // controllo dijkstra
+            graph = GraphModel.build(graph);
+            graph.initialgraph = JSON.stringify(graph.initialgraph);  // la stringa passata deve essere un json ben formato
             graph.actualgraph = graph.initialgraph;
-            return await GraphModel.create(graph);
         } catch (err) {
-            console.log(err);
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Grafo non valido");
+        }
+        await authorize_user(current_user_id, 'user', graph.get_costo());
+        console.log('ddd');
+        try {
+            graph.user_id = current_user_id;
+            // aggiorno il credito dell'utente
+            await this.scala_credito(current_user_id, graph.get_costo());
+            return await graph.save();
+        } catch (err) {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nella creazione del grafo!");
         }
     }
 
+    /*
     async retrieveAll(searchParams: { name?: string }): Promise<GraphModel[]> {
         try {
 
@@ -51,9 +69,10 @@ class GraphDataAccess implements IGraphDataAccess {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nel caricamento dei grafi!");
         }
     }
+    */
 
-    async retrieveById(id: number): Promise<GraphModel | null> {
-        //await authorize_user(user_id, 'user');
+    async retrieveById(id: number, current_user_id: number): Promise<GraphModel | null> {
+        await authorize_user(current_user_id, 'user');
         const graph = await GraphModel.findByPk(id);
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
@@ -62,7 +81,7 @@ class GraphDataAccess implements IGraphDataAccess {
     }
 
 
-    async cambiaPeso(graph_id: number, nuovi_pesi: cambia_peso_list, user_id: number): Promise<GraphModel | null> {
+    async cambiaPeso(graph_id: number, nuovi_pesi: cambia_peso_list, current_user_id: number): Promise<GraphModel | null> {
         /* In memoria del codice che fu ....
         // carico l'utente corrente
         const the_user = await User.findByPk(user_id);
@@ -75,7 +94,7 @@ class GraphDataAccess implements IGraphDataAccess {
             throw new MyGraphError(StatusCodes.UNAUTHORIZED,"Utente non autorizzato");
         }
         */
-        await authorize_user(user_id, 'user');
+        await authorize_user(current_user_id, 'user');
         const graph = await GraphModel.findByPk(graph_id);
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
@@ -89,9 +108,8 @@ class GraphDataAccess implements IGraphDataAccess {
             await graph?.save()
             // se sono arrivato qui significa che i pesi sono stati aggiornati nel modello e serializzati nel DB
 
-            // verificare come realizzare questa funzione usando sequelize
             const history = new History();
-            history.user_id = user_id;
+            history.user_id = current_user_id;
             history.changes = JSON.stringify(nuovi_pesi);
             history.graph_id = graph_id;
             history.save();
@@ -102,22 +120,28 @@ class GraphDataAccess implements IGraphDataAccess {
         }
     }
 
-    async execute(graph_id: number, start: string, stop: string, user_id: number): Promise<object | null> {
-        await authorize_user(user_id, 'user');
+    async execute(graph_id: number, start: string, stop: string, current_user_id: number): Promise<object | null> {
         const graph = await GraphModel.findByPk(graph_id);
+        await authorize_user(current_user_id, 'user', graph?.get_costo());
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
         }
+        const exec_result = graph.execute(start, stop) as {path: string};
+        if (exec_result.path === null) {
+            throw new MyGraphError(StatusCodes.NOT_FOUND, "Percorso non trovato!");
+        }
         try {
-            return graph.execute(start, stop);
+            // aggiorno il credito dell'utente
+            await this.scala_credito(current_user_id, graph.get_costo());
+            return exec_result;
         } catch (error) {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nella valutazione del percorso!");
         }
     }
 
 
-    async simulate(graph_id: number, comando: simulation_request, user_id: number): Promise<object | null> {
-        await authorize_user(user_id, 'user');
+    async simulate(graph_id: number, comando: simulation_request, current_user_id: number): Promise<object | null> {
+        await authorize_user(current_user_id, 'user');
         const graph = await GraphModel.findByPk(graph_id);
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
@@ -125,13 +149,16 @@ class GraphDataAccess implements IGraphDataAccess {
         try {
             return graph.simulate(comando);
         } catch (error) {
+            if (error instanceof MyGraphError) {
+                throw error;
+            }
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nella valutazione del percorso!");
         }
     }
 
 
-    async get_history(graph_id: number, periodo: string, formato: string, user_id: number): Promise<object | string | null> {
-        await authorize_user(user_id, 'user');
+    async get_history(graph_id: number, periodo: string, formato: string, current_user_id: number): Promise<object | string | null> {
+        await authorize_user(current_user_id, 'user');
 
 
         //  da migliorare
@@ -168,11 +195,11 @@ class GraphDataAccess implements IGraphDataAccess {
                         include: [
                             {
                                 model: User,
-                                attributes:['email']
+                                attributes: ['email']
                             },
                             {
                                 model: GraphModel,
-                                attributes:['name']
+                                attributes: ['name']
                             }
                         ]
                     },
@@ -187,13 +214,22 @@ class GraphDataAccess implements IGraphDataAccess {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
         }
         try {
+            type info = {
+                id: number;
+                user_id: number;
+                changes: string;
+                createdAt: Date;
+                updatedAt: Date;
+                user: {};
+                graphModel: {};
+            }
             let dati: object[] = [];
             if (formato === 'csv') {
 
                 graph.history.forEach(element => {
-                    dati.push(element.dataValues)
+                    console.log(element.dataValues);
+                    dati.push(element.dataValues);
                 });
-                console.log(dati);
                 return json2csv(dati);
             } else if (formato === 'pdf') {
                 const pdf = await generate_pdf(graph.history);
@@ -203,6 +239,13 @@ class GraphDataAccess implements IGraphDataAccess {
         } catch (error) {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nel calcolo della statistica!");
         }
+    }
+
+    async scala_credito(user_id: number, credito: number) {
+        // aggiorno il credito dell'utente
+        const the_user = await User.findByPk(user_id);
+        the_user!.credits -= credito;
+        await the_user?.save();
     }
 
 }

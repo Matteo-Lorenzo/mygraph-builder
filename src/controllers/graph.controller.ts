@@ -7,6 +7,8 @@ import { manage_error } from "../utilities/mylib";
 
 export default class GraphController {
     async create(req: Request, res: Response) {
+        console.log('aaa');
+        const current_user_id = req.headers['current_user_id'] as string;
         // business logic
         if (!req.body.name) {
             res.status(StatusCodes.BAD_REQUEST).send({
@@ -18,15 +20,16 @@ export default class GraphController {
         // interazione con il data access
         try {
             const graph: GraphModel = req.body;
-            graph.user_id = 1
-            const savedGraph = await graphDataAccess.save(graph);
+            const savedGraph = await graphDataAccess.save(graph, parseInt(current_user_id));
             res.status(StatusCodes.CREATED).send(savedGraph);
         } catch (err) {
             manage_error(err, res);
         }
     }
 
+    /*
     async findAll(req: Request, res: Response) {
+        const current_user_id = req.headers['current_user_id'] as string;
         const name = typeof req.query.name === "string" ? req.query.name : "";
 
         console.log("req-query", req.query);
@@ -38,12 +41,14 @@ export default class GraphController {
             manage_error(err, res);
         }
     }
+    */
 
     async findOne(req: Request, res: Response) {
+        const current_user_id = req.headers['current_user_id'] as string;
         const id: number = parseInt(req.params.id);
 
         try {
-            const graph = await graphDataAccess.retrieveById(id);
+            const graph = await graphDataAccess.retrieveById(id, parseInt(current_user_id));
 
             if (graph) res.status(StatusCodes.OK).send(graph);
             else
@@ -56,12 +61,11 @@ export default class GraphController {
     }
 
     async cambiaPeso(req: Request, res: Response) {
-        const user_id = req.headers['user_id'] as string;
-        console.log('Utente corrente ', req.headers['user_id']);
+        const current_user_id = req.headers['current_user_id'] as string;
         const lista_pesi: cambia_peso_list = req.body;
         // Interazione con il data access
         try {
-            const modifiedGraph = await graphDataAccess.cambiaPeso(parseInt(req.params.id), lista_pesi, parseInt(user_id));
+            const modifiedGraph = await graphDataAccess.cambiaPeso(parseInt(req.params.id), lista_pesi, parseInt(current_user_id));
             res.status(StatusCodes.CREATED).send(modifiedGraph);
         } catch (err) {
             manage_error(err, res);
@@ -69,14 +73,14 @@ export default class GraphController {
     }
 
     async execute(req: Request, res: Response) {
-        const user_id = req.headers['user_id'] as string;
+        const current_user_id = req.headers['current_user_id'] as string;
         const id: number = parseInt(req.params.id);
         const start: string = req.params.start;
         const stop: string = req.params.stop;
 
         // Interazione con il data access
         try {
-            const result = await graphDataAccess.execute(id, start, stop, parseInt(user_id));
+            const result = await graphDataAccess.execute(id, start, stop, parseInt(current_user_id));
             res.status(StatusCodes.OK).send(result);
         } catch (err) {
             manage_error(err, res);
@@ -85,7 +89,7 @@ export default class GraphController {
     }
 
     async simulate(req: Request, res: Response) {
-        const user_id = req.headers['user_id'] as string;
+        const current_user_id = req.headers['current_user_id'] as string;
         const graph_id: number = parseInt(req.params.id);
 
         const il_comando: simulation_request = req.body;
@@ -109,7 +113,7 @@ export default class GraphController {
        
         //Interazione con il data access
         try {
-            const result = await graphDataAccess.simulate(graph_id, il_comando, parseInt(user_id));
+            const result = await graphDataAccess.simulate(graph_id, il_comando, parseInt(current_user_id));
             res.status(StatusCodes.OK).send(result);
         } catch (err) {
             manage_error(err, res);
@@ -117,7 +121,7 @@ export default class GraphController {
     }
 
     async get_history(req: Request, res: Response) {
-        const user_id = req.headers['user_id'] as string;
+        const current_user_id = req.headers['current_user_id'] as string;
         const id: number = parseInt(req.params.id);
         const formato = typeof req.query.formato === "string" ? req.query.formato : "json";
         let periodo = typeof req.query.periodo === "string" ? req.query.periodo : "|";
@@ -128,7 +132,7 @@ export default class GraphController {
 
         // Interazione con il data access
         try {
-            const result = await graphDataAccess.get_history(id, periodo, formato, parseInt(user_id));
+            const result = await graphDataAccess.get_history(id, periodo, formato, parseInt(current_user_id));
             if (formato === 'pdf') {
                 res.contentType('application/pdf');
                 res.setHeader('Content-Disposition', 'attachment; filename=stat.pdf')

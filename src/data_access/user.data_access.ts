@@ -5,9 +5,9 @@ import { MyGraphError } from "../utilities/mylib";
 import { StatusCodes } from "http-status-codes";
 
 interface IUserDataAccess {
-    save(user: User): Promise<User>;
-    retrieveAll(searchParams: { email: string, active: boolean }): Promise<User[]>;
-    retrieveById(id: number): Promise<User | null>;
+    save(user: User, current_user_id: number): Promise<User>;
+    // retrieveAll(searchParams: { email: string, active: boolean }, current_user_id: number): Promise<User[]>;
+    retrieveById(id: number, current_user_id: number): Promise<User | null>;
     /*
     update(user: User): Promise<number>;
     delete(userId: number): Promise<number>;
@@ -20,7 +20,8 @@ interface SearchCondition {
 }
 
 class UserDataAccess implements IUserDataAccess {
-    async save(user: User): Promise<User> {
+    async save(user: User, current_user_id: number): Promise<User> {
+        await authorize_user(current_user_id, 'admin');
         try {
             return await User.create(user);
         } catch (err) {
@@ -29,7 +30,8 @@ class UserDataAccess implements IUserDataAccess {
         }
     }
 
-    async retrieveAll(searchParams: { userid?: string, email?: string, active?: boolean }): Promise<User[]> {
+    /*
+    async retrieveAll(searchParams: { userid?: string, email?: string, active?: boolean }, current_user_id: number): Promise<User[]> {
         try {
 
             console.log(searchParams);
@@ -51,8 +53,10 @@ class UserDataAccess implements IUserDataAccess {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento degli utenti");
         }
     }
+    */
 
-    async retrieveById(id: number): Promise<User | null> {
+    async retrieveById(id: number, current_user_id: number): Promise<User | null> {
+        await authorize_user(current_user_id, 'admin');
         try {
             return await User.findByPk(id);
         } catch (error) {
@@ -60,12 +64,28 @@ class UserDataAccess implements IUserDataAccess {
         }
     }
 
-    async aggiungiCredito(id: number, credito: number, user_id: number): Promise<User | null> {
-        await authorize_user(user_id, 'admin');
+    async aggiungiCredito(email: string, credito: number, current_user_id: number): Promise<User | null> {
+        await authorize_user(current_user_id, 'admin');
+        try {
+            return await User.findOne({where: {email: email}}).then(
+                (user) => {
+                    user!.credits += credito;
+                    return user?.save();
+                },
+                (err) => {
+                    return err;
+                });
+        } catch (error) {
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento del credito");
+        }
+    }
+
+    async set_active(id: number, is_activa: boolean, current_user_id: number): Promise<User | null> {
+        await authorize_user(current_user_id, 'admin');
         try {
             return await User.findByPk(id).then(
                 (user) => {
-                    user!.credits += credito;
+                    user!.active = is_activa;
                     return user?.save();
                 },
                 (err) => {

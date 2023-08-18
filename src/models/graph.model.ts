@@ -21,7 +21,7 @@ interface PathResult {
     execution_time: number;
 }
 
-interface Grafo {
+type Grafo = {
     [key: string]: { [key: string]: number };
 }
 
@@ -99,6 +99,7 @@ class GraphModel extends Model<GraphAttributes, GraphCreationAttributes>  {
 
 
     get_costo(): number {
+        console.log('get_costo');
         const info = this.get_info(JSON.parse(this.actualgraph));
         let costo = (0.15 * info.nodi.size) + (0.01 * info.archi)
         return costo
@@ -155,6 +156,9 @@ class GraphModel extends Model<GraphAttributes, GraphCreationAttributes>  {
                 the_graph[comando.arco_start][comando.arco_stop] = peso // modifico il peso
                 const dijkstra = new Graph(the_graph);
                 let result: PathResult = dijkstra.path(comando.percorso_start, comando.percorso_stop, { cost: true }) as PathResult;
+                if (result.path === null) {
+                    throw new MyGraphError(StatusCodes.BAD_REQUEST, 'Percorso inesistente');
+                }
 
                 stat.risultati.push({
                     path: result.path,
