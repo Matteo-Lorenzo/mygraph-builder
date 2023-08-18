@@ -1,4 +1,9 @@
 import express, { Express } from 'express';
+
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+const swaggerDocument = YAML.load('./swagger.yml');
+
 import dotenv from 'dotenv';
 import dbInit from './src/db/init'
 import bodyParser from 'body-parser';
@@ -21,6 +26,8 @@ const app: Express = express();
 // attivo i middleware per la parsificazione in json del body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // attivo il middleware personalizzato per la decodifica del token e 
 // l'inserimento del current_user_id nell'header della richiesta per averlo

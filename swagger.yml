@@ -1,0 +1,99 @@
+openapi: '3.0.2'
+info:
+  title: API MyGraph Builder
+  version: '1.0'
+servers:
+  - url: http://localhost:8000/api
+paths:
+  /admin/user/{id}:
+    get:
+      summary: Recupera un utente per id
+      description: L'utente deve essere registrato, attivo con ruolo 'admin'
+      parameters:
+        - name: id
+          in: path
+          description: ID del'utente da ritornare
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+  /admin/user:
+    post:
+      summary: 'Crea un nuovo utente'
+      description: L'utente deve essere registrato, attivo con ruolo 'admin'
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Utente creato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreation'
+        '500':
+          description: Errore del server
+          content:
+            application/json:
+                schema:
+                  properties:
+                    message:
+                      type: string
+      
+security:
+  - bearerAuth: []  
+
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+  schemas:
+    User:
+      properties:
+        email:
+          type: string
+          description: Indirizzo email
+        role:
+          type: string
+          description: Ruolo dell'utente (user o admin)
+        active:
+          type: boolean
+          description: Stato dell'utente
+        name:
+          type: string
+          description: Nome
+        surname:
+          type: string
+          description: Cognome
+        credits:
+          type: number
+          description: Crediti residui
+    UserCreation:
+        allOf:
+          - $ref: '#/components/schemas/User'
+        properties:
+          id:
+            type: number
+            description: Primary Key
+          createdAt:
+            type: string
+            description: Data di creazione
+            format: date-time
+          updatedAt:
+            type: string
+            description: Data di modifica
+            format: date-time
+
+    
+
+
