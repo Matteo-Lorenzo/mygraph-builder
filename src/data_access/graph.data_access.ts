@@ -235,6 +235,9 @@ class GraphDataAccess implements IGraphDataAccess {
                 const pdf = await generate_pdf(graph.history);
                 return pdf;
             }
+            graph.history.forEach(element => {
+                element.changes = JSON.parse(element.changes);
+            });
             return graph.history;
         } catch (error) {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nel calcolo della statistica!");

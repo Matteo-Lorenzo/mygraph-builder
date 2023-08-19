@@ -4,28 +4,23 @@ info:
   version: '1.0'
 servers:
   - url: http://localhost:8000/api
+tags:
+  - name: admin
+    description: Gestione utenti
+  - name: app
+    description: Gestione grafi
+    externalDocs:
+      description: Package node-dijkstra
+      url: https://www.npmjs.com/package/node-dijkstra
+
 paths:
-  /admin/user/{id}:
-    get:
-      summary: Recupera un utente per id
-      description: L'utente deve essere registrato, attivo con ruolo 'admin'
-      parameters:
-        - name: id
-          in: path
-          description: ID del'utente da ritornare
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: OK
   /admin/user:
     post:
+      tags:
+        - admin
       summary: 'Crea un nuovo utente'
-      description: L'utente deve essere registrato, attivo con ruolo 'admin'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
       requestBody:
-        description: Optional description in *Markdown*
         required: true
         content:
           application/json:
@@ -46,7 +41,308 @@ paths:
                   properties:
                     message:
                       type: string
-      
+
+  /admin/user/{id}:
+    get:
+      tags:
+        - admin
+      summary: Recupera un utente per id
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
+      parameters:
+        - name: id
+          in: path
+          description: ID del'utente da ritornare
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreation'
+
+  /admin/user/refill:
+    put:
+      tags:
+        - admin
+      summary: Aggiunge credito all'utente con id indicato
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Refill'
+      responses:
+        '200':
+          description: Credito ricaricato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreation'
+
+  /admin/user/{id}/activate:
+    put:
+      tags:
+        - admin
+      summary: Attiva l'utente con id indicato
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
+      parameters:
+        - name: id
+          in: path
+          description: ID del'utente da attivare
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody: 
+        required: false
+        content:
+          application/json: {}
+      responses:
+        '200':
+          description: Utente attivato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreation'
+        '500':
+          description: Errore nel cambio di stato
+          content:
+            application/json:
+                schema:
+                  properties:
+                    message:
+                      type: string
+
+  /admin/user/{id}/deactivate:
+    put:
+      tags:
+        - admin
+      summary: Disattiva l'utente con id indicato
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
+      parameters:
+        - name: id
+          in: path
+          description: ID del'utente da disattivare
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody: 
+        required: false
+        content:
+          application/json: {}
+      responses:
+        '200':
+          description: Utente disattivato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreation'
+        '500':
+          description: Errore nel cambio di stato
+          content:
+            application/json:
+                schema:
+                  properties:
+                    message:
+                      type: string
+
+  /app/graph:
+      post:
+        tags:
+          - app
+        summary: 'Crea un nuovo grafo'
+        description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user'
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                properties:
+                  name:
+                    type: string
+                    example: mio_grafo
+                  initialgraph:
+                    type: object
+                    example: {"A":{"B":1},"B":{"A":1,"C":2,"D":4},"C":{"B":2,"D":1},"D":{"C":1,"B":4}}
+        responses:
+          '201':
+            description: Utente creato con successo
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Graph'
+          '500':
+            description: Errore del server
+            content:
+              application/json:
+                  schema:
+                    properties:
+                      message:
+                        type: string
+  /app/graph/{id}:
+    get:
+      tags:
+        - app
+      summary: Recupera un grafo per id
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user'
+      parameters:
+        - name: id
+          in: path
+          description: ID del grapho da ritornare
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Graph'
+
+  /app/graph/{id}/start/{start}/stop{stop}:
+    get:
+      tags:
+        - app
+      summary: Esegue un grafo per id specificando i nodi start e stop
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user'
+      parameters:
+        - name: id
+          in: path
+          description: ID del grapho da eseguire
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: start
+          in: path
+          description: nome del nodo di partenza
+          required: true
+          schema:
+            type: string
+        - name: stop
+          in: path
+          description: nome del nodo di arrivo
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  path:
+                    type: array
+                    items:
+                      type: string
+                    example: ["A", "B", "C", "D"]
+                  cost:
+                    type: number
+                  execution_time:
+                    type: number
+
+
+  /app/graph/{id}/history:
+    get:
+      tags:
+        - app
+      summary: Recupera la history del grafo con chiave id
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user'
+      parameters:
+        - name: id
+          in: path
+          description: ID del grapho da selezionare
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: formato
+          in: query
+          description: formato del report
+          required: true
+          schema:
+            type: string
+            default: json
+            enum:
+              - json
+              - pdf
+              - csv
+        - name: periodo
+          in: query
+          description: perido di analisi (esempio 2023-08-09|2023-08-16)
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: number
+                      description: Primary Key del record di modifica
+                    user_id:
+                      type: number
+                      description: Id del'utente che ha creato il grafo
+                    graph_id:
+                      type: number
+                      description: Id del grafo a cui è stata apportata la modifica dei pesi
+                    changes:
+                      type: array
+                      description: Lista delle modifiche richieste
+                      items:
+                        properties:
+                          node_start:
+                            type: string
+                            description: Nodo di partenza dell'arco
+                          node_stop:
+                            type: string
+                            description: Nodo di arrivo dell'arco
+                          peso:
+                            type: number
+                            description: Peso dell'arco
+                    createdAt:
+                        type: string
+                        description: Data di creazione
+                        format: date-time
+                    updatedAt:
+                      type: string
+                      description: Data di modifica
+                      format: date-time
+                    user:
+                      type: object
+                      properties:
+                        email:
+                          type: string
+                          description: Email dell'utente che ha fatto la modifica dei pesi
+                    graphModel:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nome del grafo a cui sono stati modificati i pesi
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/html:
+              schema:
+                type: string
+            
+
 security:
   - bearerAuth: []  
 
@@ -57,6 +353,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT 
+
   schemas:
     User:
       properties:
@@ -93,6 +390,42 @@ components:
             type: string
             description: Data di modifica
             format: date-time
+    Refill:
+      properties:
+        email:
+          type: string
+          description: Indirizzo email
+        refill:
+          type: number
+          description: Credito da ricaricare
+    Graph:
+      properties:
+        id:
+            type: number
+            description: Primary Key
+        name:
+          type: string
+          description: Nome del grafo
+        initialgraph:
+          type: object
+          description: Configurazione iniziale del grafo
+          example: {"A":{"B":1},"B":{"A":1,"C":2,"D":4},"C":{"B":2,"D":1},"D":{"C":1,"B":4}}
+        actualgraph:
+          type: object
+          description: Configurazione attuale del grafo
+          example: {"A":{"B":1},"B":{"A":1,"C":2,"D":4},"C":{"B":2,"D":1},"D":{"C":1,"B":4}}
+        user_id:
+          type: number
+          description: id dell'utente che ha creato il grafo
+        createdAt:
+            type: string
+            description: Data di creazione
+            format: date-time
+        updatedAt:
+          type: string
+          description: Data di modifica
+          format: date-time
+
 
     
 

@@ -92,7 +92,7 @@ class UserDataAccess implements IUserDataAccess {
                     return err;
                 });
         } catch (error) {
-            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel caricamento del credito");
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR ,"Errore nel cambio di stato dell'utente");
         }
     }
 
