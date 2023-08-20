@@ -8,18 +8,18 @@ import { json2csv } from "json-2-csv"
 
 import Graph from 'node-dijkstra'
 
-
+/*
 interface IGraphDataAccess {
     save(graph: GraphModel, current_user_id: number): Promise<GraphModel>;
     // retrieveAll(searchParams: { name: string }): Promise<GraphModel[]>;
     retrieveById(id: number, current_user_id: number): Promise<GraphModel | null>;
-    /*
+
     update(graph: GraphModel): Promise<number>;
     delete(GraphId: number): Promise<number>;
     deleteAll(): Promise<number>;
-    */
-}
 
+}
+*/
 type SearchCondition = {
     [key: string]: any;
 }
@@ -28,7 +28,7 @@ type Grafo = {
     [key: string]: { [key: string]: number };
 }
 
-class GraphDataAccess implements IGraphDataAccess {
+class GraphDataAccess {
     async save(graph: GraphModel, current_user_id: number): Promise<GraphModel> {
         try {
             const foo = graph.initialgraph as any;
@@ -77,7 +77,11 @@ class GraphDataAccess implements IGraphDataAccess {
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
         }
-        return await GraphModel.findByPk(id);
+        const the_graph = await GraphModel.findByPk(id);
+        // ritorno la versione JSON del grafo
+        the_graph!.initialgraph = JSON.parse(the_graph!.initialgraph);
+        the_graph!.actualgraph = JSON.parse(the_graph!.actualgraph);
+        return the_graph;
     }
 
 
@@ -114,7 +118,11 @@ class GraphDataAccess implements IGraphDataAccess {
             history.graph_id = graph_id;
             history.save();
 
-            return await GraphModel.findByPk(graph_id);
+            const the_graph =  await GraphModel.findByPk(graph_id);
+            // ritorno la versione JSON del grafo
+            the_graph!.initialgraph = JSON.parse(the_graph!.initialgraph);
+            the_graph!.actualgraph = JSON.parse(the_graph!.actualgraph);
+            return the_graph;
         } catch (error) {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nell'aggiornamento dei pesi!");
         }
@@ -126,7 +134,7 @@ class GraphDataAccess implements IGraphDataAccess {
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
         }
-        const exec_result = graph.execute(start, stop) as {path: string};
+        const exec_result = graph.execute(start, stop) as { path: string };
         if (exec_result.path === null) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Percorso non trovato!");
         }
@@ -254,4 +262,4 @@ class GraphDataAccess implements IGraphDataAccess {
 }
 
 
-export default new GraphDataAccess();
+export default new GraphDataAccess() as GraphDataAccess;

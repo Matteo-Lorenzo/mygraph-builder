@@ -4,22 +4,12 @@ import {authorize_user} from "../utilities/security"
 import { MyGraphError } from "../utilities/mylib";
 import { StatusCodes } from "http-status-codes";
 
-interface IUserDataAccess {
-    save(user: User, current_user_id: number): Promise<User>;
-    // retrieveAll(searchParams: { email: string, active: boolean }, current_user_id: number): Promise<User[]>;
-    retrieveById(id: number, current_user_id: number): Promise<User | null>;
-    /*
-    update(user: User): Promise<number>;
-    delete(userId: number): Promise<number>;
-    deleteAll(): Promise<number>;
-    */
-}
 
-interface SearchCondition {
+type SearchCondition = {
     [key: string]: any;
 }
 
-class UserDataAccess implements IUserDataAccess {
+class UserDataAccess {
     async save(user: User, current_user_id: number): Promise<User> {
         await authorize_user(current_user_id, 'admin');
         try {
@@ -98,4 +88,4 @@ class UserDataAccess implements IUserDataAccess {
 
 }
 
-export default new UserDataAccess();
+export default new UserDataAccess() as UserDataAccess;

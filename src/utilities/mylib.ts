@@ -1,5 +1,5 @@
 import { CustomError } from 'ts-custom-error'
-import e, { Response } from "express";
+import { Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { Template, generate, BLANK_PDF } from '@pdfme/generator';
 import { GraphModel, User, History } from "../models";
@@ -45,7 +45,8 @@ export const manage_error = (err: any, res: Response) => {
         })
     } else {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-            message: "Errore del Server."
+            message: "Errore del Server.",
+            stack: err.stack
         });
     }
 }

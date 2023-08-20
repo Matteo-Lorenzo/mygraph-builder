@@ -9,13 +9,13 @@ import User from './user.model'
 import History from './history.model'
 
 
-interface graph_info {
+type graph_info = {
     nodi: Set<string>;
     archi: number;
 };
 
 
-interface PathResult {
+type PathResult = {
     path: string[];
     cost: number;
     execution_time: number;
@@ -25,7 +25,6 @@ type Grafo = {
     [key: string]: { [key: string]: number };
 }
 
-
 interface GraphAttributes {
     id: number;
     name: string;
@@ -34,13 +33,13 @@ interface GraphAttributes {
     user_id?: number;
 }
 
-interface peso_info {
+type peso_info = {
     path: string[];
     cost: number;
     peso: number;
 }
 
-interface simul_result {
+type simul_result = {
     risultati: peso_info[];
     best_result: number;
     best_config: Grafo;

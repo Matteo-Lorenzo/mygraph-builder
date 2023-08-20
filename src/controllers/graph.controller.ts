@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { simulation_request, cambia_peso_list } from "../declarations"
 import { manage_error } from "../utilities/mylib";
 
-export default class GraphController {
+class GraphController {
     async create(req: Request, res: Response) {
         console.log('aaa');
         const current_user_id = req.headers['current_user_id'] as string;
@@ -145,3 +145,5 @@ export default class GraphController {
 
     }
 }
+
+export default GraphController;

@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { manage_error, isNumeric } from "../utilities/mylib";
 import { type } from "os";
 
-export default class UserController {
+class UserController {
     async create(req: Request, res: Response) {
         const current_user_id = req.headers['current_user_id'] as string;
         // business logic
@@ -133,7 +133,6 @@ export default class UserController {
     }
     */
 
-
-
-
 }
+
+export default UserController;

@@ -6,7 +6,7 @@ import GraphModel from './graph.model'
 import History from './history.model'
 
 
-export interface UserAttributes {
+interface UserAttributes {
     id: number;
     name?: string;
     surname?: string,

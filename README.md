@@ -1,5 +1,5 @@
 # Progetto MyGraph-Builder
-***
+
 ## Descrizione generale
 
 L'applicativo sviluppato è un RESTful Web Service, cioè un sistema software che, comunicando tramite il protocollo HTTP, è in grado di mettersi al servizio di un Client, come ad esempio un'applicazione, un sito web o Postman, e consentire agli utenti che vi si collegano di usufruire delle funzioni che mette a disposizione.
@@ -96,7 +96,8 @@ Inoltre l'oggetto Promise supporta due proprietà: *state* e *result*.
 Nel progetto le Promise sono utilizzate, tra l'altro, nel modulo <code>data_access</code> per rendere asincrone le interazioni col modello.
 
 ## Diagrammi UML
-Inserire qui alcuni diagrammi
+
+![Diagramma delle classi](./diagramma_delle_classi.jpg "Diagramma delle classi")
 
 ## Application Programming Interface: cosa fanno e come si usano
 Le API implementate, la loro descrizione funzionale, le relative rotte, i payload, i risultati ed i possibili codici di errore sono consultabili accedendo alla [documentazione interattiva Swagger](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/Matteo-Lorenzo/mygraph-builder/main/swagger.yml).
