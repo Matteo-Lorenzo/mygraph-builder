@@ -42,21 +42,8 @@ class AppRoutes {
     // Autorizzazione: ruolo 'user' e 'admin'
     this.router.post("/graph/:id/simulate", this.graphController.simulate);
 
-    /*
-    // Recupera i grafi secondo i criteri passati attrverso la querystring
-    this.router.get("/graph", this.graphController.findAll);
-
     
-    */
 
-
-
-
-
-
-
-
-    // ecc.
   }
 }
 
