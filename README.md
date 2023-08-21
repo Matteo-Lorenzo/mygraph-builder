@@ -98,6 +98,10 @@ Nel progetto le Promise sono utilizzate, tra l'altro, nel modulo <code>data_acce
 ## Diagrammi UML
 
 ![Diagramma delle classi](./diagramma_delle_classi.jpg "Diagramma delle classi")
+<h6 align="center">Diagramma delle classi</h6>
+
+![Diagramma delle sequenze](./Sequence_Diagram.jpg "Diagramma delle sequenze")
+<h6 align="center">Diagramma delle sequenze </h6>
 
 ## Application Programming Interface: cosa fanno e come si usano
 Le API implementate, la loro descrizione funzionale, le relative rotte, i payload, i risultati ed i possibili codici di errore sono consultabili accedendo alla [documentazione interattiva Swagger](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/Matteo-Lorenzo/mygraph-builder/main/swagger.yml).

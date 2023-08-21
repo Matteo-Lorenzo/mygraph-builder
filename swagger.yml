@@ -236,7 +236,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Graph'
 
-  /app/graph/{id}/start/{start}/stop{stop}:
+  /app/graph/{id}/start/{start}/stop/{stop}:
     get:
       tags:
         - app
