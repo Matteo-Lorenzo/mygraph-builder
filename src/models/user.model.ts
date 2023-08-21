@@ -16,6 +16,12 @@ interface UserAttributes {
     active: boolean,
 }
 
+export enum UserRole {
+    Tutti = '',
+    Amministratore = 'admin',
+    Utente = 'user'
+}
+
 export interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
 
 @Table({

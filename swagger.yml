@@ -172,7 +172,7 @@ paths:
                     example: {"A":{"B":1},"B":{"A":1,"C":2,"D":4},"C":{"B":2,"D":1},"D":{"C":1,"B":4}}
         responses:
           '201':
-            description: Utente creato con successo
+            description: Grafo creato con successo
             content:
               application/json:
                 schema:
@@ -185,6 +185,7 @@ paths:
                     properties:
                       message:
                         type: string
+
   /app/graph/{id}:
     get:
       tags:
@@ -199,6 +200,34 @@ paths:
           schema:
             type: integer
             format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Graph'
+    put:
+      tags:
+        - app
+      summary: Cambia peso al grafo con id
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user' o 'admin'
+      parameters:
+        - name: id
+          in: path
+          description: ID del grapho da ritornare
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody: 
+        required: false
+        content:
+          application/json: 
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PesoArco'
       responses:
         '200':
           description: OK
@@ -341,7 +370,61 @@ paths:
             text/html:
               schema:
                 type: string
+        '404':
+          description: NOT FOUND
+          content:
+              application/json:
+                  schema:
+                    properties:
+                      message:
+                        type: string
+                        example: Dati non disponibili per i criteri di ricerca inseriti!
+        '500':
+            description: INTERNAL SERVER ERROR
+            content:
+              application/json:
+                  schema:
+                    properties:
+                      message:
+                        type: string
+                        example: Errore nel calcolo della statistica!
             
+  /app/graph/{id}/simulate:
+      post:
+        tags:
+          - app
+        summary: Simulazione con range di pesi (questa rotta è una POST di interrogazione, non apporta modifiche ai dati)
+        description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user' o admin
+        parameters:
+          - name: id
+            in: path
+            description: ID del grapho da simulare
+            required: true
+            schema:
+              type: integer
+              format: int64
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Simulazione'
+        responses:
+          '201':
+            description: Grafo creato con successo
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Graph'
+          '500':
+            description: Errore del server
+            content:
+              application/json:
+                  schema:
+                    properties:
+                      message:
+                        type: string
+
 
 security:
   - bearerAuth: []  
@@ -425,6 +508,44 @@ components:
           type: string
           description: Data di modifica
           format: date-time
+
+    PesoArco:
+      properties:
+        node_start:
+          type: string
+          description: Nodo di partenza dell'arco
+        node_stop:
+          type: string
+          description: Nodo di arrivo dell'arco
+        peso:
+          type: number
+          description: Peso dell'arco
+
+
+    Simulazione:
+      properties:
+        arco_start:
+          type: string
+          description: Nodo iniziale dell'arco
+        arco_stop:
+          type: string
+          description: Nodo finale dell'arco
+        peso_start:
+          type: number
+          description: Peso iniziale della simulazione
+        peso_stop:
+          type: number
+          description: Peso finale della simulazione
+        passo:
+          type: number
+          description: Passo della simulazione
+        percorso_start:
+          type: string
+          description: Nodo di partenza della simulazione
+        percorso_stop:
+          type: string
+          description: Nodo di arrivo della simulazione
+
 
 
     

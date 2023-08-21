@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { User } from "../models";
+import { User, UserRole } from "../models";
 import userDataAccess from "../data_access/user.data_access";
 import { StatusCodes } from "http-status-codes";
 import { manage_error, isNumeric } from "../utilities/mylib";
@@ -11,7 +11,13 @@ class UserController {
         // business logic
         if (!req.body.email) {
             res.status(StatusCodes.BAD_REQUEST).send({
-                message: "email empty!"
+                message: "email non inserita!"
+            });
+            return;
+        }
+        if ((!(req.body.role in UserRole)) || (req.body.role === 'Tutti')) {
+            res.status(StatusCodes.BAD_REQUEST).send({
+                message: "Ruolo non riconosciuto!"
             });
             return;
         }
@@ -20,7 +26,7 @@ class UserController {
         try {
             const user: User = req.body;
             if (!user.active) user.active = false;
-            console.log(user);
+            user.role = UserRole[user.role as keyof typeof UserRole];
             const savedUser = await userDataAccess.save(user, parseInt(current_user_id));
             res.status(StatusCodes.CREATED).send(savedUser);
         } catch (err) {

@@ -8,7 +8,6 @@ import dotenv from 'dotenv';
 import dbInit from './src/db/init'
 import bodyParser from 'body-parser';
 import { decode_token } from './src/utilities/security'
-import { get_alpha } from './src/utilities/mylib'
 
 import { adminRoutes, appRoutes } from './src/routes'
 

@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import userDataAccess from "../data_access/user.data_access";
 import { StatusCodes } from "http-status-codes";
 import { isNumeric, MyGraphError } from "./mylib";
-import { User } from "../models"
+import { User, UserRole } from "../models"
 
 
 import { jwt_info, token_info } from '../declarations'
@@ -54,7 +54,7 @@ export function decode_token(req: Request, res: Response, next: NextFunction) {
     }
 }
 
-export async function authorize_user(current_user_id: number, role: string, costo_operazione?: number) {
+export async function authorize_user(current_user_id: number, role: UserRole, costo_operazione?: number) {
     // carico l'utente corrente
     const the_user = await User.findByPk(current_user_id);
     // questa funzione può essere eseguita solo per utenti registrati che ...
@@ -63,10 +63,9 @@ export async function authorize_user(current_user_id: number, role: string, cost
     };
     if (the_user.active) {
         // ... hanno il ruolo richiesto
-        if (role !== "") {
-            if (the_user?.role !== role) {
+        if ((role !== UserRole.Tutti) && (the_user?.role !== role)) {
+                // il ruolo richiesto non è Tutti ed il ruolo dell'utente corrente è diverso da quello richiesto
                 throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Utente non autorizzato");
-            }
         }
     } else {
         throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Utente non attivo");

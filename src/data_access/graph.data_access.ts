@@ -1,7 +1,7 @@
 import { Op, where } from "sequelize";
-import { GraphModel, User, History } from "../models";
+import { GraphModel, User, History, UserRole, Grafo } from "../models";
 import { cambia_peso_list, simulation_request } from "../declarations"
-import { MyGraphError, generate_pdf } from "../utilities/mylib";
+import { MyGraphError, generate_pdf, graph2json } from "../utilities/mylib";
 import { authorize_user } from "../utilities/security"
 import { StatusCodes } from "http-status-codes";
 import { json2csv } from "json-2-csv"
@@ -24,9 +24,6 @@ type SearchCondition = {
     [key: string]: any;
 }
 
-type Grafo = {
-    [key: string]: { [key: string]: number };
-}
 
 class GraphDataAccess {
     async save(graph: GraphModel, current_user_id: number): Promise<GraphModel> {
@@ -39,7 +36,7 @@ class GraphDataAccess {
         } catch (err) {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Grafo non valido");
         }
-        await authorize_user(current_user_id, 'user', graph.get_costo());
+        await authorize_user(current_user_id, UserRole.Utente, graph.get_costo());
         console.log('ddd');
         try {
             graph.user_id = current_user_id;
@@ -72,16 +69,13 @@ class GraphDataAccess {
     */
 
     async retrieveById(id: number, current_user_id: number): Promise<GraphModel | null> {
-        await authorize_user(current_user_id, 'user');
+        await authorize_user(current_user_id, UserRole.Tutti);
         const graph = await GraphModel.findByPk(id);
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
         }
-        const the_graph = await GraphModel.findByPk(id);
         // ritorno la versione JSON del grafo
-        the_graph!.initialgraph = JSON.parse(the_graph!.initialgraph);
-        the_graph!.actualgraph = JSON.parse(the_graph!.actualgraph);
-        return the_graph;
+        return await GraphModel.findByPk(id).then((the_graph) => graph2json(the_graph!));
     }
 
 
@@ -98,7 +92,7 @@ class GraphDataAccess {
             throw new MyGraphError(StatusCodes.UNAUTHORIZED,"Utente non autorizzato");
         }
         */
-        await authorize_user(current_user_id, 'user');
+        await authorize_user(current_user_id, UserRole.Tutti);
         const graph = await GraphModel.findByPk(graph_id);
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
@@ -118,11 +112,9 @@ class GraphDataAccess {
             history.graph_id = graph_id;
             history.save();
 
-            const the_graph =  await GraphModel.findByPk(graph_id);
             // ritorno la versione JSON del grafo
-            the_graph!.initialgraph = JSON.parse(the_graph!.initialgraph);
-            the_graph!.actualgraph = JSON.parse(the_graph!.actualgraph);
-            return the_graph;
+            return await GraphModel.findByPk(graph_id).then((the_graph) => graph2json(the_graph!));
+
         } catch (error) {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nell'aggiornamento dei pesi!");
         }
@@ -130,7 +122,7 @@ class GraphDataAccess {
 
     async execute(graph_id: number, start: string, stop: string, current_user_id: number): Promise<object | null> {
         const graph = await GraphModel.findByPk(graph_id);
-        await authorize_user(current_user_id, 'user', graph?.get_costo());
+        await authorize_user(current_user_id, UserRole.Utente, graph?.get_costo());
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
         }
@@ -149,7 +141,7 @@ class GraphDataAccess {
 
 
     async simulate(graph_id: number, comando: simulation_request, current_user_id: number): Promise<object | null> {
-        await authorize_user(current_user_id, 'user');
+        await authorize_user(current_user_id, UserRole.Tutti);
         const graph = await GraphModel.findByPk(graph_id);
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
@@ -166,10 +158,8 @@ class GraphDataAccess {
 
 
     async get_history(graph_id: number, periodo: string, formato: string, current_user_id: number): Promise<object | string | null> {
-        await authorize_user(current_user_id, 'user');
+        await authorize_user(current_user_id, UserRole.Tutti);
 
-
-        //  da migliorare
         let criterion = (periodo: string) => {
             const query_periodo = periodo.split('|');
             const start_date = query_periodo[0] + ' 00:00:00.0+02'
@@ -217,9 +207,9 @@ class GraphDataAccess {
                 ],
             });
 
-
+        console.log(graph);
         if (!(graph instanceof GraphModel)) {
-            throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
+            throw new MyGraphError(StatusCodes.NOT_FOUND, "Dati non disponibili per i criteri di ricerca inseriti!");
         }
         try {
             type info = {

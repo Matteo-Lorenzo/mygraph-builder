@@ -21,7 +21,7 @@ type PathResult = {
     execution_time: number;
 }
 
-type Grafo = {
+export type Grafo = {
     [key: string]: { [key: string]: number };
 }
 

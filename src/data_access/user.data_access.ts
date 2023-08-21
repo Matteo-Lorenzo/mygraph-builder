@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { User } from "../models";
+import { User, UserRole } from "../models";
 import {authorize_user} from "../utilities/security"
 import { MyGraphError } from "../utilities/mylib";
 import { StatusCodes } from "http-status-codes";
@@ -11,7 +11,7 @@ type SearchCondition = {
 
 class UserDataAccess {
     async save(user: User, current_user_id: number): Promise<User> {
-        await authorize_user(current_user_id, 'admin');
+        await authorize_user(current_user_id, UserRole.Amministratore);
         try {
             return await User.create(user);
         } catch (err) {
@@ -46,7 +46,7 @@ class UserDataAccess {
     */
 
     async retrieveById(id: number, current_user_id: number): Promise<User | null> {
-        await authorize_user(current_user_id, 'admin');
+        await authorize_user(current_user_id, UserRole.Amministratore);
         try {
             return await User.findByPk(id);
         } catch (error) {
@@ -55,7 +55,7 @@ class UserDataAccess {
     }
 
     async aggiungiCredito(email: string, credito: number, current_user_id: number): Promise<User | null> {
-        await authorize_user(current_user_id, 'admin');
+        await authorize_user(current_user_id, UserRole.Amministratore);
         try {
             return await User.findOne({where: {email: email}}).then(
                 (user) => {
@@ -71,7 +71,7 @@ class UserDataAccess {
     }
 
     async set_active(id: number, is_activa: boolean, current_user_id: number): Promise<User | null> {
-        await authorize_user(current_user_id, 'admin');
+        await authorize_user(current_user_id, UserRole.Amministratore);
         try {
             return await User.findByPk(id).then(
                 (user) => {

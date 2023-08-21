@@ -131,3 +131,9 @@ export async function generate_pdf(dati: object[]): Promise<Uint8Array> {
     return Buffer.from(pdf.buffer);
 
 }
+
+export function graph2json(graph: GraphModel): GraphModel {
+    graph.initialgraph = JSON.parse(graph.initialgraph);
+    graph.actualgraph = JSON.parse(graph.actualgraph);
+    return graph;
+}
