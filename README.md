@@ -107,10 +107,7 @@ Nel progetto le Promise sono utilizzate, tra l'altro, nel modulo <code>data_acce
 Le API implementate, la loro descrizione funzionale, le relative rotte, i payload, i risultati ed i possibili codici di errore sono consultabili accedendo alla [documentazione interattiva Swagger](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/Matteo-Lorenzo/mygraph-builder/main/swagger.yml).
 Utilizzando questa intuitiva interfaccia grafica è anche possibile interagire con gli endpoint in locale per eseguire gli opportuni test.
 
-## Peculiarità
-
-## Come si utilizza
-> #### Deploy dell'applicativo con Docker
+## Come si utilizza: deploy dell'applicativo con Docker
 Il sistema prevede di utilizzare due container, uno per l'applicativo Express e l'altro per il database Postgres, e un volume per la persistenza dei dati dell'RDBMS.
 1. Scaricare lo zip dal seguente [link](https://github.com/Matteo-Lorenzo/mygraph-builder/archive/refs/heads/main.zip)
 2. Decomprimerlo nella propria directory di lavoro
