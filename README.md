@@ -110,19 +110,36 @@ Utilizzando questa intuitiva interfaccia grafica è anche possibile interagire c
 ## Peculiarità
 
 ## Come si utilizza
+> #### Deploy dell'applicativo con Docker
+Il sistema prevede di utilizzare due container, uno per l'applicativo Express e l'altro per il database Postgres, e un volume per la persistenza dei dati dell'RDBMS.
+1. Scaricare lo zip dal seguente [link](https://github.com/Matteo-Lorenzo/mygraph-builder/archive/refs/heads/main.zip)
+2. Decomprimerlo nella propria directory di lavoro
+3. Supponendo che il nome della directory decompressa sia <code>${MGB\_ROOT}</code> 
+4. ```
+    cd ${MGB_ROOT}
+    ```
+5. ```
+    docker build -t mygraph-builder:1.0.0 .
+    ```
+6. Creare in <code>${MGB\_ROOT}</code> il file di configurazione <code>.env</code> contenente le seguenti informazioni
+    ```
+    PORT=8000
+    SYNC_DB=yes
+    POSTGRES_USER=postgres
+    POSTGRES_PASSWORD=postgres
+    POSTGRES_DB=mygraphdb
+    DB_HOST=localhost
+    DB_DRIVER=postgres
+    LOGGING=no
+    ALPHA=0.5
+    SECRET=pa2023
+    ```
+7. Una volta creata l'immagine dell'applicativo, utilizzare il file <code>docker-compose.yml</code> per costruire i container e avviare i servizi
+   ```
+    docker compose -p mygraph up
+    ```
+    _[in produzione si suggerisce di utilizzare l'opzione -d per l'esecuzione in modalità detached]_
+8. Una volta avviati i servizi, per verificare il corretto funzionamento accedere alla rotta http://localhost:8000/api-docs/
 
-```
-PORT=8000
-SYNC_DB=yes
-POSTGRES_USER=<postgres user>
-POSTGRES_PASSWORD=<postgres pasword>
-POSTGRES_DB=<nome del database>
-DB_HOST=<indirizzo IP del database>
-DB_DRIVER=postgres
-LOGGING=no
-ALPHA=0.5
-SECRET=<segreto per la codifica del token>
-```
-
-
-
+L'accesso alle rotte richiede un token di autorizzazione. Ecco di seguito i token per ciascuno degli utenti generati dalla procedura di seeding:
+// TODO
