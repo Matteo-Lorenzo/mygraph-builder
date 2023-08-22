@@ -126,6 +126,7 @@ Il sistema prevede di utilizzare due container, uno per l'applicativo Express e 
     POSTGRES_PASSWORD=postgres
     POSTGRES_DB=mygraphdb
     DB_HOST=localhost
+    DB_PORT=5432
     DB_DRIVER=postgres
     LOGGING=no
     ALPHA=0.5

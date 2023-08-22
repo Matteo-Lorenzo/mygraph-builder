@@ -5,7 +5,7 @@ import { Optional } from 'sequelize';
 import GraphModel from './graph.model'
 import History from './history.model'
 
-
+// attributi della tabella User
 interface UserAttributes {
     id: number;
     name?: string;
@@ -16,6 +16,7 @@ interface UserAttributes {
     active: boolean,
 }
 
+// possibili ruoli dell'utente
 export enum UserRole {
     Tutti = '',
     Amministratore = 'admin',
@@ -24,6 +25,7 @@ export enum UserRole {
 
 export interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
 
+// utilizzo di sequelize-typescript per la dichiarazione del modello
 @Table({
     tableName: 'user', // Nome della tabella nel database
     timestamps: true, // inclusione degli attributi createdAt e updatedAt

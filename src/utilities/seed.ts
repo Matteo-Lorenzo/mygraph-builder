@@ -52,24 +52,40 @@ async function createGraph(user: User, name: string, initialgraph: Grafo) {
 
 async function seed() {
 
-    let grafo = {
-        "A": { 'B': 1, 'F': 3 },
-        "B": { 'A': 2, 'C': 2, 'D': 4 },
-        "C": { 'B': 2, 'D': 1 },
-        "D": { 'C': 1, 'B': 4 }
+    let grafoA = {
+        "A": { 'B': 1, 'E': 3 },
+        "B": { 'C': 2, 'G': 2 },
+        "C": { 'D': 2, 'A': 1 },
+        "D": { 'E': 1, 'H': 4 },
+        "E": { 'F': 3, 'C': 1 },
+        "F": { 'G': 2, 'B': 1, 'C': 1 },
+        "G": { 'H': 4 },
+        "H": { 'A': 3, 'D': 2 },
+    }
+
+    let grafoB = {
+        "A": { 'D': 1 },
+        "B": { 'A': 2, 'E': 2 },
+        "C": { 'G': 2 },
+        "D": { 'B': 1, 'E': 4, 'H': 3},
+        "E": { 'C': 3, 'D': 1, 'H': 2 },
+        "F": { 'A': 2, 'C': 1, 'E': 1 },
+        "G": { 'F': 4, 'I': 3 },
+        "H": { 'G': 3, 'E': 2 },
+        "I": { 'B': 3},
     }
 
 
     await dbInit();
     console.log('Database collegato...');
     const admin1 = await createUser('Mario', 'Rossi', 'admin1@gmail.com', true, UserRole.Amministratore, 0);
-    const admin2 = await createUser('Luigi', 'Verdi', 'admin2@gmail.com', true, UserRole.Amministratore, 0);
+    //const admin2 = await createUser('Luigi', 'Verdi', 'admin2@gmail.com', true, UserRole.Amministratore, 0);
     const user1 = await createUser('Antonio', 'Bianchi', 'user1@gmail.com', true, UserRole.Utente, 15);
     const user2 = await createUser('Paperino', 'Paolino', 'user2@gmail.com', true, UserRole.Utente, 10);
 
-    const grafo1 = await createGraph(user1, 'primoGrafo', grafo);
-    const grafo2 = await createGraph(user1, 'secondoGrafo', grafo);
-    const grafo3 = await createGraph(user2, 'terzoGrafo', grafo);
+    const grafo1 = await createGraph(user1, 'primoGrafo', grafoA);
+    const grafo2 = await createGraph(user2, 'secondoGrafo', grafoB);
+    //const grafo3 = await createGraph(user2, 'terzoGrafo', grafo);
 
     if (await History.count() === 0) {
         console.log('Seed per le modifiche...');
@@ -79,12 +95,12 @@ async function seed() {
                 {
                     "node_start": "A",
                     "node_stop": "B",
-                    "peso": 2
+                    "peso": 1
                 },
                 {
                     "node_start": "C",
                     "node_stop": "D",
-                    "peso": 4
+                    "peso": 2
                 }
             ],
             user1.id)
@@ -93,44 +109,27 @@ async function seed() {
             grafo2.id,
             [
                 {
-                    "node_start": "B",
-                    "node_stop": "C",
-                    "peso": 2
+                    "node_start": "A",
+                    "node_stop": "D",
+                    "peso": 1
                 },
                 {
                     "node_start": "C",
-                    "node_stop": "D",
-                    "peso": 3
+                    "node_stop": "G",
+                    "peso": 2
                 }
             ],
             user2.id)
 
-        await graphDataAccess.cambiaPeso(
-            grafo3.id,
-            [
-                {
-                    "node_start": "A",
-                    "node_stop": "B",
-                    "peso": 2
-                },
-                {
-                    "node_start": "C",
-                    "node_stop": "D",
-                    "peso": 4
-                }
-            ],
-            user2.id)
     } else {
         console.log('Seed per le modifiche non necessario...');
     }
 
     console.log(admin1?.toJSON());
-    console.log(admin2?.toJSON());
     console.log(user1?.toJSON());
     console.log(user2?.toJSON());
     console.log(grafo1?.toJSON());
     console.log(grafo2?.toJSON());
-    console.log(grafo3?.toJSON());
 
     console.log('Database pronto...');
 }

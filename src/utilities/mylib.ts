@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { Template, generate, BLANK_PDF } from '@pdfme/generator';
 import { GraphModel, User, History } from "../models";
 
-
+// Eccezione personalizzata per MyGraph-Builder
 export class MyGraphError extends CustomError {
     public constructor(
         public code: number,
@@ -14,22 +14,12 @@ export class MyGraphError extends CustomError {
     }
 }
 
-
+// controllo se la stringa rappresenta un numero
 export const isNumeric = (val: string): boolean => {
     return !isNaN(Number(val));
 }
 
-/*
-export function get_alpha(): number{
-
-    let alpha = process.env.ALPHA as string;
-    if (isNumeric(alpha) && (Number(alpha) > 0) && (Number(alpha) < 1)) {
-        return Number(alpha)
-    }
-    return 0.9
-}
-*/
-
+// recupero del valore di ALPHA e controllo secondo i criteri predefiniti
 export const get_alpha = (): number => {
     let alpha = process.env.ALPHA as string;
     if (isNumeric(alpha) && (Number(alpha) > 0) && (Number(alpha) < 1)) {
@@ -38,6 +28,7 @@ export const get_alpha = (): number => {
     return 0.9
 }
 
+// gestione della risposta di errore e del suo status code dipendentemente dall'eccezione sollevata
 export const manage_error = (err: any, res: Response) => {
     if (err instanceof MyGraphError) {
         res.status(err.code).send({
@@ -51,14 +42,8 @@ export const manage_error = (err: any, res: Response) => {
     }
 }
 
+// generazione del PDF
 export async function generate_pdf(dati: object[]): Promise<Uint8Array> {
-
-    type test = {
-        user_id: string;
-        graph_id: string;
-        changes: string;
-        updatedAt: string;
-    }
 
     const column_size = [60, 22, 60, 50];
     const column_content = {
@@ -132,6 +117,7 @@ export async function generate_pdf(dati: object[]): Promise<Uint8Array> {
 
 }
 
+// trasformazione in JSON dei dati del modello del grafo
 export function graph2json(graph: GraphModel): GraphModel {
     graph.initialgraph = JSON.parse(graph.initialgraph);
     graph.actualgraph = JSON.parse(graph.actualgraph);

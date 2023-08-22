@@ -8,26 +8,13 @@ import { json2csv } from "json-2-csv"
 
 import Graph from 'node-dijkstra'
 
-/*
-interface IGraphDataAccess {
-    save(graph: GraphModel, current_user_id: number): Promise<GraphModel>;
-    // retrieveAll(searchParams: { name: string }): Promise<GraphModel[]>;
-    retrieveById(id: number, current_user_id: number): Promise<GraphModel | null>;
-
-    update(graph: GraphModel): Promise<number>;
-    delete(GraphId: number): Promise<number>;
-    deleteAll(): Promise<number>;
-
-}
-*/
-type SearchCondition = {
-    [key: string]: any;
-}
-
 
 class GraphDataAccess {
+
+    // creazione di un nuovo grafo
     async save(graph: GraphModel, current_user_id: number): Promise<GraphModel> {
         try {
+            // richiesta alla libreria di caricare il grafo per controllarne la consistenza
             const foo = graph.initialgraph as any;
             const bar = new Graph(foo as Grafo);        // controllo dijkstra
             graph = GraphModel.build(graph);
@@ -36,39 +23,23 @@ class GraphDataAccess {
         } catch (err) {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Grafo non valido");
         }
+        // autorizzazione dell'utente corrente, compreso il controllo del credito
         await authorize_user(current_user_id, UserRole.Utente, graph.get_costo());
-        console.log('ddd');
+
         try {
             graph.user_id = current_user_id;
             // aggiorno il credito dell'utente
             await this.scala_credito(current_user_id, graph.get_costo());
-            return await graph.save();
+            // ritorno la versione JSON del grafo
+            return await graph.save().then((the_graph) => graph2json(the_graph!));
         } catch (err) {
             throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nella creazione del grafo!");
         }
     }
 
-    /*
-    async retrieveAll(searchParams: { name?: string }): Promise<GraphModel[]> {
-        try {
-
-            console.log(searchParams);
-
-            let condition: SearchCondition = {};
-
-            if (searchParams?.name)
-                condition.userid = { [Op.like]: `%${searchParams.name}%` };
-
-            console.log(condition);
-
-            return await GraphModel.findAll({ where: condition });
-        } catch (error) {
-            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, "Errore nel caricamento dei grafi!");
-        }
-    }
-    */
-
+    // ricerca di un grafo per chiave primaria
     async retrieveById(id: number, current_user_id: number): Promise<GraphModel | null> {
+        // autorizzazione dell'utente corrente
         await authorize_user(current_user_id, UserRole.Tutti);
         const graph = await GraphModel.findByPk(id);
         if (!(graph instanceof GraphModel)) {
@@ -78,7 +49,7 @@ class GraphDataAccess {
         return await GraphModel.findByPk(id).then((the_graph) => graph2json(the_graph!));
     }
 
-
+    // cambia il peso di uno o più archi del grafo
     async cambiaPeso(graph_id: number, nuovi_pesi: cambia_peso_list, current_user_id: number): Promise<GraphModel | null> {
         /* In memoria del codice che fu ....
         // carico l'utente corrente
@@ -92,6 +63,7 @@ class GraphDataAccess {
             throw new MyGraphError(StatusCodes.UNAUTHORIZED,"Utente non autorizzato");
         }
         */
+       // autorizzazione dell'utente corrente
         await authorize_user(current_user_id, UserRole.Tutti);
         const graph = await GraphModel.findByPk(graph_id);
         if (!(graph instanceof GraphModel)) {
@@ -106,6 +78,7 @@ class GraphDataAccess {
             await graph?.save()
             // se sono arrivato qui significa che i pesi sono stati aggiornati nel modello e serializzati nel DB
 
+            // aggiorno la storia delle modifiche
             const history = new History();
             history.user_id = current_user_id;
             history.changes = JSON.stringify(nuovi_pesi);
@@ -120,8 +93,10 @@ class GraphDataAccess {
         }
     }
 
+    // esecuzione del modello per trovare il cammino ottimo tra due nodi dati
     async execute(graph_id: number, start: string, stop: string, current_user_id: number): Promise<object | null> {
         const graph = await GraphModel.findByPk(graph_id);
+        // autorizzazione dell'utente corrente, compreso il controllo del credito
         await authorize_user(current_user_id, UserRole.Utente, graph?.get_costo());
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Grafo non trovato!");
@@ -139,8 +114,9 @@ class GraphDataAccess {
         }
     }
 
-
+    // simulazione della ricerca del cammino ottimo al cambio di peso di un arco
     async simulate(graph_id: number, comando: simulation_request, current_user_id: number): Promise<object | null> {
+        // autorizzazione dell'utente corrente
         await authorize_user(current_user_id, UserRole.Tutti);
         const graph = await GraphModel.findByPk(graph_id);
         if (!(graph instanceof GraphModel)) {
@@ -156,16 +132,18 @@ class GraphDataAccess {
         }
     }
 
-
+    // produzione di statistiche, in vari formati, relative alla storia delle
+    // modifiche apportate ai pesi di un grafo in un determinato periodo di tempo
     async get_history(graph_id: number, periodo: string, formato: string, current_user_id: number): Promise<object | string | null> {
+        // autorizzazione dell'utente corrente
         await authorize_user(current_user_id, UserRole.Tutti);
-
+        
+        // costruzione dei criteri di selezione dipendentemente dai valori dei parametri della richiesta
         let criterion = (periodo: string) => {
             const query_periodo = periodo.split('|');
             const start_date = query_periodo[0] + ' 00:00:00.0+02'
             const end_date = query_periodo[1] + ' 23:59:59.0+02'
 
-            console.log(query_periodo);
             // data inizio e data fine indicate
             if ((query_periodo[0] !== '') && (query_periodo[1] !== '')) {
                 return { updatedAt: { [Op.between]: [start_date, end_date] } };
@@ -183,7 +161,7 @@ class GraphDataAccess {
                 return {};
             }
         }
-
+        // ricerca utilizzando i criteri appena costruiti
         const graph = await GraphModel.findByPk(graph_id,
             {
                 include: [
@@ -207,11 +185,13 @@ class GraphDataAccess {
                 ],
             });
 
-        console.log(graph);
+        // controllo dei dati trovati
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Dati non disponibili per i criteri di ricerca inseriti!");
         }
+        // formattazione della risposta secondo il formato richiesto
         try {
+            /*
             type info = {
                 id: number;
                 user_id: number;
@@ -221,6 +201,7 @@ class GraphDataAccess {
                 user: {};
                 graphModel: {};
             }
+            */
             let dati: object[] = [];
             if (formato === 'csv') {
 
@@ -242,8 +223,8 @@ class GraphDataAccess {
         }
     }
 
-    async scala_credito(user_id: number, credito: number) {
-        // aggiorno il credito dell'utente
+    // metodo per aggiornare il credito dell'utente
+    private async scala_credito(user_id: number, credito: number) {
         const the_user = await User.findByPk(user_id);
         the_user!.credits -= credito;
         await the_user?.save();

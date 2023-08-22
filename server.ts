@@ -11,12 +11,12 @@ import { decode_token } from './src/utilities/security'
 
 import { adminRoutes, appRoutes } from './src/routes'
 
+// carico le variabili d'ambiente dal file .env
 dotenv.config();
 
-// carico le variabili d'ambiente
 const port = process.env.PORT;
 
-// Inizializzazione del database postgres
+// Inizializzazione del database Postgres
 dbInit()
 
 // instanzio l'applicazione express
@@ -26,10 +26,11 @@ const app: Express = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// attivo la rotta per la gestione della documentazione interattiva on-line
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // attivo il middleware personalizzato per la decodifica del token e 
-// l'inserimento del current_user_id nell'header della richiesta per averlo
+// l'inserimento del current_user_id nell'header della richiesta, per averlo
 // disponibile in qualsisi punto della catena di gestione delle rotte
 app.use(decode_token);
 

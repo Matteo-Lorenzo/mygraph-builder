@@ -39,7 +39,7 @@ export function decode_token(req: Request, res: Response, next: NextFunction) {
     if (typeof (req.headers.authorization) === 'string') {
         try {
             const token = get_token(req);
-            // occorre anche verificare la validità temporale del token
+            // possono essere qui inseriti ulteriori controlli a piacimento sulla validità del token
             req.headers['current_user_id'] = token.user_id;
             next();
         } catch (error) {

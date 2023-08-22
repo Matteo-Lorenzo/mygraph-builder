@@ -25,16 +25,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/Utente'
       responses:
         '201':
           description: Utente creato con successo
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserCreation'
+                $ref: '#/components/schemas/RecordUtente'
         '500':
-          description: Errore del server
+          description: INTERNAL SERVER ERROR
           content:
             application/json:
                 schema:
@@ -62,7 +62,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserCreation'
+                $ref: '#/components/schemas/RecordUtente'
+        '404':
+          description: NOT FOUND
+          content:
+            application/json:
+                schema:
+                  properties:
+                    message:
+                      type: string
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+                schema:
+                  properties:
+                    message:
+                      type: string
 
   /admin/user/refill:
     put:
@@ -82,7 +98,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserCreation'
+                $ref: '#/components/schemas/RecordUtente'
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+                schema:
+                  properties:
+                    message:
+                      type: string
 
   /admin/user/{id}/activate:
     put:
@@ -108,7 +132,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserCreation'
+                $ref: '#/components/schemas/RecordUtente'
         '500':
           description: Errore nel cambio di stato
           content:
@@ -142,7 +166,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserCreation'
+                $ref: '#/components/schemas/RecordUtente'
         '500':
           description: Errore nel cambio di stato
           content:
@@ -163,22 +187,16 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  name:
-                    type: string
-                    example: mio_grafo
-                  initialgraph:
-                    type: object
-                    example: {"A":{"B":1},"B":{"A":1,"C":2,"D":4},"C":{"B":2,"D":1},"D":{"C":1,"B":4}}
+                $ref: '#/components/schemas/NuovoGrafo'
         responses:
           '201':
             description: Grafo creato con successo
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/Graph'
+                  $ref: '#/components/schemas/Grafo'
           '500':
-            description: Errore del server
+            description: INTERNAL SERVER ERROR
             content:
               application/json:
                   schema:
@@ -195,7 +213,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: ID del grapho da ritornare
+          description: ID del grafo da ritornare
           required: true
           schema:
             type: integer
@@ -206,7 +224,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Graph'
+                $ref: '#/components/schemas/Grafo'
+        '404':
+          description: NOT FOUND
+          content:
+            application/json:
+                schema:
+                  properties:
+                    message:
+                      type: string
+        '500':
+            description: INTERNAL SERVER ERROR
+            content:
+              application/json:
+                  schema:
+                    properties:
+                      message:
+                        type: string
     put:
       tags:
         - app
@@ -215,7 +249,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: ID del grapho da ritornare
+          description: ID del grafo da ritornare
           required: true
           schema:
             type: integer
@@ -229,12 +263,28 @@ paths:
               items:
                 $ref: '#/components/schemas/PesoArco'
       responses:
-        '200':
-          description: OK
+        '201':
+          description: CREATED
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Graph'
+                $ref: '#/components/schemas/Grafo'
+        '404':
+          description: NOT FOUND
+          content:
+            application/json:
+                schema:
+                  properties:
+                    message:
+                      type: string
+        '500':
+            description: INTERNAL SERVER ERROR
+            content:
+              application/json:
+                  schema:
+                    properties:
+                      message:
+                        type: string
 
   /app/graph/{id}/start/{start}/stop/{stop}:
     get:
@@ -245,7 +295,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: ID del grapho da eseguire
+          description: ID del grafo da eseguire
           required: true
           schema:
             type: integer
@@ -278,6 +328,22 @@ paths:
                     type: number
                   execution_time:
                     type: number
+        '404':
+          description: NOT FOUND
+          content:
+            application/json:
+                schema:
+                  properties:
+                    message:
+                      type: string
+        '500':
+            description: INTERNAL SERVER ERROR
+            content:
+              application/json:
+                  schema:
+                    properties:
+                      message:
+                        type: string
 
 
   /app/graph/{id}/history:
@@ -289,7 +355,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: ID del grapho da selezionare
+          description: ID del grafo da selezionare
           required: true
           schema:
             type: integer
@@ -317,52 +383,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  properties:
-                    id:
-                      type: number
-                      description: Primary Key del record di modifica
-                    user_id:
-                      type: number
-                      description: Id del'utente che ha creato il grafo
-                    graph_id:
-                      type: number
-                      description: Id del grafo a cui è stata apportata la modifica dei pesi
-                    changes:
-                      type: array
-                      description: Lista delle modifiche richieste
-                      items:
-                        properties:
-                          node_start:
-                            type: string
-                            description: Nodo di partenza dell'arco
-                          node_stop:
-                            type: string
-                            description: Nodo di arrivo dell'arco
-                          peso:
-                            type: number
-                            description: Peso dell'arco
-                    createdAt:
-                        type: string
-                        description: Data di creazione
-                        format: date-time
-                    updatedAt:
-                      type: string
-                      description: Data di modifica
-                      format: date-time
-                    user:
-                      type: object
-                      properties:
-                        email:
-                          type: string
-                          description: Email dell'utente che ha fatto la modifica dei pesi
-                    graphModel:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          description: Nome del grafo a cui sono stati modificati i pesi
+                $ref: '#/components/schemas/History'
             application/pdf:
               schema:
                 type: string
@@ -398,7 +419,7 @@ paths:
         parameters:
           - name: id
             in: path
-            description: ID del grapho da simulare
+            description: ID del grafo da simulare
             required: true
             schema:
               type: integer
@@ -410,14 +431,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/Simulazione'
         responses:
-          '201':
-            description: Grafo creato con successo
+          '200':
+            description: Simulazione avvenuta correttamente
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/Graph'
+                  $ref: '#/components/schemas/RisultatoSimulazione'
+          '404':
+            description: NOT FOUND
+            content:
+              application/json:
+                  schema:
+                    properties:
+                      message:
+                        type: string
           '500':
-            description: Errore del server
+            description: INTERNAL SERVER ERROR
             content:
               application/json:
                   schema:
@@ -438,7 +467,7 @@ components:
       bearerFormat: JWT 
 
   schemas:
-    User:
+    Utente:
       properties:
         email:
           type: string
@@ -458,9 +487,9 @@ components:
         credits:
           type: number
           description: Crediti residui
-    UserCreation:
+    RecordUtente:
         allOf:
-          - $ref: '#/components/schemas/User'
+          - $ref: '#/components/schemas/Utente'
         properties:
           id:
             type: number
@@ -481,7 +510,7 @@ components:
         refill:
           type: number
           description: Credito da ricaricare
-    Graph:
+    Grafo:
       properties:
         id:
             type: number
@@ -546,8 +575,83 @@ components:
           type: string
           description: Nodo di arrivo della simulazione
 
+    NuovoGrafo:
+      properties:
+        name:
+          type: string
+          example: mio_grafo
+        initialgraph:
+          type: object
+          example: {"A":{"B":1},"B":{"A":1,"C":2,"D":4},"C":{"B":2,"D":1},"D":{"C":1,"B":4}}
 
+    History:
+      type: array
+      items:
+        properties:
+          id:
+            type: number
+            description: Primary Key del record di modifica
+          user_id:
+            type: number
+            description: Id del'utente che ha creato il grafo
+          graph_id:
+            type: number
+            description: Id del grafo a cui è stata apportata la modifica dei pesi
+          changes:
+            type: array
+            description: Lista delle modifiche richieste
+            items:
+              properties:
+                node_start:
+                  type: string
+                  description: Nodo di partenza dell'arco
+                node_stop:
+                  type: string
+                  description: Nodo di arrivo dell'arco
+                peso:
+                  type: number
+                  description: Peso dell'arco
+          createdAt:
+              type: string
+              description: Data di creazione
+              format: date-time
+          updatedAt:
+            type: string
+            description: Data di modifica
+            format: date-time
+          user:
+            type: object
+            properties:
+              email:
+                type: string
+                description: Email dell'utente che ha fatto la modifica dei pesi
+          graphModel:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Nome del grafo a cui sono stati modificati i pesi
 
+    RisultatoSimulazione:
+      properties:
+        risultati:
+          type: array
+          items:
+            properties:
+              path:
+                type: array
+                items:
+                  type: string
+              costo:
+                type: string
+              peso:
+                type: number
+        best_result:
+          type: number
+        best_config:
+          type: object
+
+        
     
 
 

@@ -37,12 +37,6 @@ class AdminRoutes {
     // Autorizzazione: ruolo 'admin
     this.router.put("/user/:id/deactivate", this.userController.deactivate);
 
-    /*
-    // Recupera gli utenti secondo i criteri passati attrverso la querystring
-    // Autenticazione: utente registrato e attivo
-    // Autorizzazione: ruolo 'admin
-    this.router.get("/user", this.userController.findAll);
-    */
     
   }
 }

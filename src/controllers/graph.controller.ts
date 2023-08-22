@@ -6,10 +6,12 @@ import { simulation_request, cambia_peso_list } from "../declarations"
 import { manage_error } from "../utilities/mylib";
 
 class GraphController {
+
+    // metodo per la gestione della creazione di un nuovo grafo
     async create(req: Request, res: Response) {
-        console.log('aaa');
+        // recupero dell'id dell'utente corrente dall'header della richiesta
         const current_user_id = req.headers['current_user_id'] as string;
-        // business logic
+        // controlli sulla consistenza della richiesta
         if (!req.body.name) {
             res.status(StatusCodes.BAD_REQUEST).send({
                 message: "Nome vuoto!"
@@ -27,26 +29,13 @@ class GraphController {
         }
     }
 
-    /*
-    async findAll(req: Request, res: Response) {
-        const current_user_id = req.headers['current_user_id'] as string;
-        const name = typeof req.query.name === "string" ? req.query.name : "";
 
-        console.log("req-query", req.query);
-
-        try {
-            const graph = await graphDataAccess.retrieveAll({ name });
-            res.status(StatusCodes.OK).send(graph);
-        } catch (err) {
-            manage_error(err, res);
-        }
-    }
-    */
-
+    // metodo per la gestione della ricerca di un grafo
     async findOne(req: Request, res: Response) {
+        // recupero dei parametri dalla richiesta
         const current_user_id = req.headers['current_user_id'] as string;
         const id: number = parseInt(req.params.id);
-
+        // interazione con il data access
         try {
             const graph = await graphDataAccess.retrieveById(id, parseInt(current_user_id));
 
@@ -60,7 +49,9 @@ class GraphController {
         }
     }
 
+    // metodo per la gestione del cambio di peso di uno o più archi del grafo
     async cambiaPeso(req: Request, res: Response) {
+         // recupero dei parametri dalla richiesta
         const current_user_id = req.headers['current_user_id'] as string;
         const lista_pesi: cambia_peso_list = req.body;
         // Interazione con il data access
@@ -72,7 +63,9 @@ class GraphController {
         }
     }
 
+    // metodo per la gestione dell'esecuzione del modello per trovare il cammino ottimo tra due nodi dati
     async execute(req: Request, res: Response) {
+         // recupero dei parametri dalla richiesta
         const current_user_id = req.headers['current_user_id'] as string;
         const id: number = parseInt(req.params.id);
         const start: string = req.params.start;
@@ -88,28 +81,14 @@ class GraphController {
 
     }
 
+    // metodo per la gestione della simulazione della ricerca del cammino ottimo al cambio di peso di un arco
     async simulate(req: Request, res: Response) {
+         // recupero dei parametri dalla richiesta
         const current_user_id = req.headers['current_user_id'] as string;
         const graph_id: number = parseInt(req.params.id);
 
         const il_comando: simulation_request = req.body;
 
-        // scrivere una funzione di validazione dei parametri
-
-        console.log(il_comando);
-        //res.status(StatusCodes.OK).send(il_comando);
-
-         /* Approccio precedente con rotta con metodo GET e parametri passati tramite querystring abbandonato perchè
-            di difficile gestione e controllo dei tipi... inoltre potrebbe presentare limitazioni rispetto al passaggio
-            di parametri nel body
-        const arco_start = typeof req.query.arco_start === "string" ? req.query.arco_start : "";
-        const arco_stop = typeof req.query.arco_stop === "string" ? req.query.arco_stop : "";
-        const peso_start = typeof req.query.peso_start === "string" ? parseFloat(req.query.peso_start) : 0.0;
-        const peso_stop = typeof req.query.peso_stop === "string" ? parseFloat(req.query.peso_stop) : 0.0;
-        const passo = typeof req.query.passo === "string" ? parseFloat(req.query.passo) : 0.0;
-        const percorso_start = typeof req.query.percorso_start === "string" ? req.query.percorso_start : "";
-        const percorso_stop = typeof req.query.percorso_stop === "string" ? req.query.percorso_stop : "";
-        */
        
         //Interazione con il data access
         try {
@@ -120,7 +99,10 @@ class GraphController {
         }
     }
 
+    // metodo per la gestione della produzione di statistiche, in vari formati, relative alla
+    // storia delle modifiche apportate ai pesi di un grafo in un determinato periodo di tempo
     async get_history(req: Request, res: Response) {
+         // recupero e formattazione dei parametri dalla richiesta
         const current_user_id = req.headers['current_user_id'] as string;
         const id: number = parseInt(req.params.id);
         const formato = typeof req.query.formato === "string" ? req.query.formato : "json";
@@ -128,7 +110,6 @@ class GraphController {
         if (!periodo.includes("|")) {
             periodo = periodo + '|' + periodo;
         }
-
 
         // Interazione con il data access
         try {

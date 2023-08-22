@@ -3,6 +3,7 @@ import { Optional } from 'sequelize';
 import User from './user.model'
 import GraphModel from './graph.model'
 
+// attributi della tabella History
 interface HistoryAttributes {
     id: number;
     changes: string;
@@ -13,6 +14,7 @@ interface HistoryAttributes {
 
 export interface HistoryCreationAttributes extends Optional<HistoryAttributes, 'id' > { }
 
+// utilizzo di sequelize-typescript per la dichiarazione del modello
 @Table({
     tableName: 'history', // Nome della tabella nel database
     timestamps: true, // inclusione degli attributi createdAt e updatedAt

@@ -10,6 +10,7 @@ const dbDriver = process.env.DB_DRIVER as Dialect;
 const dbPassword = process.env.POSTGRES_PASSWORD;
 const dbLogging = process.env.LOGGING === "yes";
 
+// inizializzazione dell'ORM Sequelize
 const sequelizeConnection = new Sequelize(dbName, dbUser, dbPassword, {
   host: dbHost,
   port: dbPort,
