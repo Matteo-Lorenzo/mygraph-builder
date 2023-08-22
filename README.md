@@ -109,5 +109,20 @@ Utilizzando questa intuitiva interfaccia grafica è anche possibile interagire c
 
 ## Peculiarità
 
+## Come si utilizza
+
+```
+PORT=8000
+SYNC_DB=yes
+POSTGRES_USER=<postgres user>
+POSTGRES_PASSWORD=<postgres pasword>
+POSTGRES_DB=<nome del database>
+DB_HOST=<indirizzo IP del database>
+DB_DRIVER=postgres
+LOGGING=no
+ALPHA=0.5
+SECRET=<segreto per la codifica del token>
+```
+
 
 

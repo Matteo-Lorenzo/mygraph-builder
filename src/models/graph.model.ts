@@ -172,7 +172,10 @@ class GraphModel extends Model<GraphAttributes, GraphCreationAttributes>  {
                 throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, 'Qualcosa è andato storto nella simulazione');
             }
         }
-        return stat;
+        if (stat.risultati.length > 0)
+            return stat;
+        else
+            throw new MyGraphError(StatusCodes.INTERNAL_SERVER_ERROR, 'Qualcosa è andato storto nella simulazione');
     }
 }
 

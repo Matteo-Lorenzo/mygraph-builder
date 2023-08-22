@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import dbInit from '../db/init';
-import { User, GraphModel, UserRole, Grafo } from '../models'
+import { User, GraphModel, UserRole, Grafo, History } from '../models';
+import graphDataAccess from '../data_access/graph.data_access';
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ async function createUser(name: string, surname: string, email: string, active: 
                     role,
                     credits
                 });
-                console.log(`Utente ${user.email} inserito in archivio`); 
+                console.log(`Utente ${user.email} inserito in archivio`);
                 return user.save();
             }
         }
@@ -37,9 +38,9 @@ async function createGraph(user: User, name: string, initialgraph: Grafo) {
                 const graph = new GraphModel();
                 graph.name = name;
                 graph.user_id = user.id,
-                graph.initialgraph = JSON.stringify(initialgraph);
+                    graph.initialgraph = JSON.stringify(initialgraph);
                 graph.actualgraph = graph.initialgraph;
-                console.log(`Grafo ${graph.name} inserito in archivio`); 
+                console.log(`Grafo ${graph.name} inserito in archivio`);
                 return graph.save();
             }
         }
@@ -61,24 +62,79 @@ async function seed() {
 
     await dbInit();
     console.log('Database collegato...');
-    const admin1 = await createUser('Mario', 'Rossi', 'mario.rossi@gmail.com', true, UserRole.Amministratore, 0);
-    const admin2 = await createUser('Luigi', 'Verdi', 'verdi.luigi@gmail.com', true, UserRole.Amministratore, 0);
-    const user1   = await createUser('Antonio', 'Bianchi', 'bianchi.antonio@gmail.com', true, UserRole.Utente, 15);
-    const user2   = await createUser('Paperino', 'Paolino', 'paperino.paperino@gmail.com', true, UserRole.Utente, 10);
+    const admin1 = await createUser('Mario', 'Rossi', 'admin1@gmail.com', true, UserRole.Amministratore, 0);
+    const admin2 = await createUser('Luigi', 'Verdi', 'admin2@gmail.com', true, UserRole.Amministratore, 0);
+    const user1 = await createUser('Antonio', 'Bianchi', 'user1@gmail.com', true, UserRole.Utente, 15);
+    const user2 = await createUser('Paperino', 'Paolino', 'user2@gmail.com', true, UserRole.Utente, 10);
 
     const grafo1 = await createGraph(user1, 'primoGrafo', grafo);
     const grafo2 = await createGraph(user1, 'secondoGrafo', grafo);
     const grafo3 = await createGraph(user2, 'terzoGrafo', grafo);
+
+    if (await History.count() === 0) {
+        console.log('Seed per le modifiche...');
+        await graphDataAccess.cambiaPeso(
+            grafo1.id,
+            [
+                {
+                    "node_start": "A",
+                    "node_stop": "B",
+                    "peso": 2
+                },
+                {
+                    "node_start": "C",
+                    "node_stop": "D",
+                    "peso": 4
+                }
+            ],
+            user1.id)
+
+        await graphDataAccess.cambiaPeso(
+            grafo2.id,
+            [
+                {
+                    "node_start": "B",
+                    "node_stop": "C",
+                    "peso": 2
+                },
+                {
+                    "node_start": "C",
+                    "node_stop": "D",
+                    "peso": 3
+                }
+            ],
+            user2.id)
+
+        await graphDataAccess.cambiaPeso(
+            grafo3.id,
+            [
+                {
+                    "node_start": "A",
+                    "node_stop": "B",
+                    "peso": 2
+                },
+                {
+                    "node_start": "C",
+                    "node_stop": "D",
+                    "peso": 4
+                }
+            ],
+            user2.id)
+    } else {
+        console.log('Seed per le modifiche non necessario...');
+    }
 
     console.log(admin1?.toJSON());
     console.log(admin2?.toJSON());
     console.log(user1?.toJSON());
     console.log(user2?.toJSON());
     console.log(grafo1?.toJSON());
-    console.log(grafo3?.toJSON());
+    console.log(grafo2?.toJSON());
     console.log(grafo3?.toJSON());
 
     console.log('Database pronto...');
 }
+
+
 
 seed();
