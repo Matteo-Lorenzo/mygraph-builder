@@ -5,7 +5,7 @@ import graphDataAccess from '../data_access/graph.data_access';
 
 dotenv.config();
 
-
+// funzione di creazione di un utente secondo i parametri passati, se non già esistente (criterio = email)
 async function createUser(name: string, surname: string, email: string, active: boolean, role: UserRole, credits: number) {
     return User.findOne({ where: { email: email } }).then(
         (user) => {
@@ -28,6 +28,7 @@ async function createUser(name: string, surname: string, email: string, active: 
     );
 }
 
+// funzione di creazione di un grafo secondo i parametri passati, se non già esistente (criterio = nome)
 async function createGraph(user: User, name: string, initialgraph: Grafo) {
     return GraphModel.findOne({ where: { name: name } }).then(
         (graph) => {
@@ -51,7 +52,7 @@ async function createGraph(user: User, name: string, initialgraph: Grafo) {
 
 
 async function seed() {
-
+    // grafi di prova
     let grafoA = {
         "A": { 'B': 1, 'E': 3 },
         "B": { 'C': 2, 'G': 2 },
@@ -79,14 +80,14 @@ async function seed() {
     await dbInit();
     console.log('Database collegato...');
     const admin1 = await createUser('Mario', 'Rossi', 'admin1@gmail.com', true, UserRole.Amministratore, 0);
-    //const admin2 = await createUser('Luigi', 'Verdi', 'admin2@gmail.com', true, UserRole.Amministratore, 0);
+    
     const user1 = await createUser('Antonio', 'Bianchi', 'user1@gmail.com', true, UserRole.Utente, 15);
     const user2 = await createUser('Paperino', 'Paolino', 'user2@gmail.com', true, UserRole.Utente, 10);
 
     const grafo1 = await createGraph(user1, 'primoGrafo', grafoA);
     const grafo2 = await createGraph(user2, 'secondoGrafo', grafoB);
-    //const grafo3 = await createGraph(user2, 'terzoGrafo', grafo);
-
+    
+    // se non ho niente nella History...
     if (await History.count() === 0) {
         console.log('Seed per le modifiche...');
         await graphDataAccess.cambiaPeso(

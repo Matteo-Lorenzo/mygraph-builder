@@ -45,7 +45,7 @@ export const manage_error = (err: any, res: Response) => {
 // generazione del PDF
 export async function generate_pdf(dati: object[]): Promise<Uint8Array> {
 
-    const column_size = [60, 22, 60, 50];
+    const column_size = [55, 33, 60, 50];
     const column_content = {
         col1: '',
         col2: '',

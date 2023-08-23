@@ -15,9 +15,9 @@ Il progetto implementa un servizio di gestione di grafi che, a seconda dell’AP
 - fornire l'elenco delle modifiche effettuate ai pesi di un grafo specificato nei formati JSON, csv o PDF;
 - simulare il calcolo del cammino ottimo sul grafo scelto, dal punto di partenza a quello di arrivo specificati, al variare del peso di un arco selezionato;
 - ricaricare il credito di un utente indicato dell'ammontare specificato;
-- creare un nuovo utente
-- cercare le informazioni di un utente per ID
-- attivare/disattivare un utente
+- creare un nuovo utente;
+- cercare le informazioni di un utente per ID;
+- attivare/disattivare un utente;
 
 
 Tutte le rotte richiedono l'autenticazione tramite JSON Web Token (JWT) e il sistema verifica che l'utente sia autorizzato al consumo dell'endpoint richiesto.
@@ -26,6 +26,7 @@ Inoltre è stata stata implementata una base di dati per la memorizzazione dei d
 ## Ambiente operativo
 Lo stack utilizzato dall'applicativo MyGraph-Builder è costituito da Node.js come runtime JavaScript, Express.js come framework HTTP, Sequelize come ORM, Postgres come database.
 L'intero codice è scritto utilizzando il linguaggio TypeScript e per il deploy finale si utilizza Docker come runtime per la gestione dei container.
+Per agevolare l'attività di sviluppo è stata utlizzata la caratteristica del live reloading messa a disposizione dal package <code>nodemon</code>, in collaborazione con il package <code>concurrently</code> per avviare la compilazione dei file TS ad ogni loro modifica (modalità watch di tsc).
 > #### Node.js
 Node.js è un runtime system open source multipiattaforma orientato agli eventi che permette l'esecuzione di codice JavaScript, costruito sul motore JavaScript V8 di Google Chrome. Ha permesso l'utilizzo di JavaScript, inizialmente pensato solo per funzionare lato client all'interno dei browser, anche lato server per la realizzazione di Back End o applicazioni desktop. La sua architettura orientata agli eventi rende possibile l'I/O asincrono. Questo design punta ad ottimizzare il throughput e la scalabilità nelle applicazioni web con molte operazioni di I/O. Il modello di networking su cui si basa Node.js non è quello dei processi concorrenti, ma di I/O event driven, infatti Node richede al sistema operativo di ricevere notifiche al verificarsi di determinati eventi, rimanendo in sleep fino all'arrivo della notifica stessa. All'arrivo di una nuova notifica torna attivo per eseguire le istruzioni previste nella funzione di callback, così chiamata perchè deve essere eseguita al ricevimento dell'avviso che il sistema operativo sottostante ha eseguito l'elaborazione richesta e il risultato è disponibile.
 Per ulteriori informazioni [Node.js](https://nodejs.org/it).
@@ -107,6 +108,8 @@ Nel progetto le Promise sono utilizzate, tra l'altro, nel modulo <code>data_acce
 Le API implementate, la loro descrizione funzionale, le relative rotte, i payload, i risultati ed i possibili codici di errore sono consultabili accedendo alla [documentazione interattiva Swagger](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/Matteo-Lorenzo/mygraph-builder/main/swagger.yml).
 Utilizzando questa intuitiva interfaccia grafica è anche possibile interagire con gli endpoint in locale per eseguire gli opportuni test.
 
+Come scelta progettuale si è deciso di permettere l'utilizzo delle rotte dedicate all'utente, ma prive di costo, anche all'amministratore. Quelle che prevedono un costo non lo sono poichè l'amministratore non possiede crediti.
+
 ## Come si utilizza: deploy dell'applicativo con Docker
 Il sistema prevede di utilizzare due container, uno per l'applicativo Express e l'altro per il database Postgres, e un volume per la persistenza dei dati dell'RDBMS.
 1. Scaricare lo zip dal seguente [link](https://github.com/Matteo-Lorenzo/mygraph-builder/archive/refs/heads/main.zip)
@@ -139,5 +142,22 @@ Il sistema prevede di utilizzare due container, uno per l'applicativo Express e 
     _[in produzione si suggerisce di utilizzare l'opzione -d per l'esecuzione in modalità detached]_
 8. Una volta avviati i servizi, per verificare il corretto funzionamento accedere alla rotta http://localhost:8000/api-docs/
 
+E' prevista una funzione di seeding per il popolamento del database con dati di prova. Tale funzione è attivabile manualmente con il comando:
+```
+npm run seed
+```
+Nel caso di applicazione dockerizzata si può richedere di eseguire automaticamente il seed all'avvio tramite la variabile d'ambiente <code>SEED_DB</code> presente nel file <code>docker-compose.yml</code>.
+
 L'accesso alle rotte richiede un token di autorizzazione. Ecco di seguito i token per ciascuno degli utenti generati dalla procedura di seeding:
-// TODO
+- Utente admin1:
+  ```
+  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMSIsImlhdCI6MTUxNjIzOTAyMn0.JS1kD6L4yUgV2mLHAd80Yc7kdNOesWooA_JPSzK85EA
+  ```
+- Utente user1:
+  ```
+  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMiIsImlhdCI6MTUxNjIzOTAyMn0.-rT93JBbqIR3eXpmFVQnDGoT6l8aYRDAv-czrMvMv6M
+  ```
+- Utente user2:
+  ```
+  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMyIsImlhdCI6MTUxNjIzOTAyMn0.IkW51L4MjhaF6PjsUQI56jlRJvEg_WS5r-Q7R0YNqgg
+  ```

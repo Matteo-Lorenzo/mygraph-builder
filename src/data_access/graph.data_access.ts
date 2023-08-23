@@ -184,7 +184,7 @@ class GraphDataAccess {
                     [{ model: History, as: 'history' }, 'updatedAt', 'DESC'],
                 ],
             });
-
+        
         // controllo dei dati trovati
         if (!(graph instanceof GraphModel)) {
             throw new MyGraphError(StatusCodes.NOT_FOUND, "Dati non disponibili per i criteri di ricerca inseriti!");
@@ -206,7 +206,6 @@ class GraphDataAccess {
             if (formato === 'csv') {
 
                 graph.history.forEach(element => {
-                    console.log(element.dataValues);
                     dati.push(element.dataValues);
                 });
                 return json2csv(dati);

@@ -8,14 +8,12 @@ import { User, UserRole } from "../models"
 
 import { jwt_info, token_info } from '../declarations'
 
-
+// estrae il token dalla richiesta, lo decodifica, lo verifica e lo ritorna in formato jwt_info
 export function get_token(req: Request): jwt_info {
     try {
         const secret = process.env.SECRET as string;
         const authorization = req.headers.authorization;
-        console.log(authorization);
         const token = authorization?.replace("Bearer ", "");
-        console.log(token);
         const result = jwt.verify(token!, secret) as jwt_info;
         console.log(result);
         if ((typeof (result.user_id) === 'string') && (isNumeric(result.user_id))) {
@@ -28,7 +26,7 @@ export function get_token(req: Request): jwt_info {
     }
 }
 
-
+// middleware che gestisce il token e autentica gli utenti
 export function decode_token(req: Request, res: Response, next: NextFunction) {
     // controllo la presenza del campo Authorization nell'header
     // se presente lo decodifico
@@ -54,6 +52,7 @@ export function decode_token(req: Request, res: Response, next: NextFunction) {
     }
 }
 
+// funzione di autorizzazione dell'utente dipendentemente dal ruolo e, opzionalmente, dal costo dell'operazione richiesta
 export async function authorize_user(current_user_id: number, role: UserRole, costo_operazione?: number) {
     // carico l'utente corrente
     const the_user = await User.findByPk(current_user_id);
@@ -64,12 +63,13 @@ export async function authorize_user(current_user_id: number, role: UserRole, co
     if (the_user.active) {
         // ... hanno il ruolo richiesto
         if ((role !== UserRole.Tutti) && (the_user?.role !== role)) {
-                // il ruolo richiesto non è Tutti ed il ruolo dell'utente corrente è diverso da quello richiesto
+                // se il ruolo richiesto non è Tutti ed il ruolo dell'utente corrente è diverso da quello richiesto: errore
                 throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Utente non autorizzato");
         }
     } else {
         throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Utente non attivo");
     }
+    // caso di autorizzazione con incluso il controllo del credito residuo
     if ((typeof costo_operazione) === 'number') {
         if (costo_operazione! > the_user.credits) {
             throw new MyGraphError(StatusCodes.UNAUTHORIZED, "Non hai credito sufficiente");
