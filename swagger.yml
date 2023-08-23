@@ -19,7 +19,7 @@ paths:
       tags:
         - admin
       summary: 'Crea un nuovo utente'
-      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Amministratore'
       requestBody:
         required: true
         content:
@@ -47,7 +47,7 @@ paths:
       tags:
         - admin
       summary: Recupera un utente per id
-      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Amministratore'
       parameters:
         - name: id
           in: path
@@ -85,7 +85,7 @@ paths:
       tags:
         - admin
       summary: Aggiunge credito all'utente con id indicato
-      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Amministratore'
       requestBody: 
         required: true
         content:
@@ -113,7 +113,7 @@ paths:
       tags:
         - admin
       summary: Attiva l'utente con id indicato
-      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Amministratore'
       parameters:
         - name: id
           in: path
@@ -147,7 +147,7 @@ paths:
       tags:
         - admin
       summary: Disattiva l'utente con id indicato
-      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'admin'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Amministratore'
       parameters:
         - name: id
           in: path
@@ -181,7 +181,7 @@ paths:
         tags:
           - app
         summary: 'Crea un nuovo grafo'
-        description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user'
+        description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Utente'
         requestBody:
           required: true
           content:
@@ -209,7 +209,7 @@ paths:
       tags:
         - app
       summary: Recupera un grafo per id
-      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Utente' o 'Amministratore'
       parameters:
         - name: id
           in: path
@@ -245,7 +245,7 @@ paths:
       tags:
         - app
       summary: Cambia peso al grafo con id
-      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user' o 'admin'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Utente' o 'Amministratore'
       parameters:
         - name: id
           in: path
@@ -291,7 +291,7 @@ paths:
       tags:
         - app
       summary: Esegue un grafo per id specificando i nodi start e stop
-      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Utente'
       parameters:
         - name: id
           in: path
@@ -351,7 +351,7 @@ paths:
       tags:
         - app
       summary: Recupera la history del grafo con chiave id
-      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user'
+      description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Utente' o Amministratore
       parameters:
         - name: id
           in: path
@@ -415,7 +415,7 @@ paths:
         tags:
           - app
         summary: Simulazione con range di pesi (questa rotta è una POST di interrogazione, non apporta modifiche ai dati)
-        description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'user' o admin
+        description: L'utente che consuma l'api deve essere registrato, attivo con ruolo 'Utente' o 'Amministratore'
         parameters:
           - name: id
             in: path
@@ -474,7 +474,10 @@ components:
           description: Indirizzo email
         role:
           type: string
-          description: Ruolo dell'utente (user o admin)
+          description: Ruolo dell'utente (Utente o Amministratore)
+          enum:
+              - Utente
+              - Amministatore
         active:
           type: boolean
           description: Stato dell'utente

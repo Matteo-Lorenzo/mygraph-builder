@@ -206,7 +206,7 @@ class GraphDataAccess {
             if (formato === 'csv') {
 
                 graph.history.forEach(element => {
-                    dati.push(element.dataValues);
+                    dati.push(element.toJSON());
                 });
                 return json2csv(dati);
             } else if (formato === 'pdf') {

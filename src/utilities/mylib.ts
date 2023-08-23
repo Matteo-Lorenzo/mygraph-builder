@@ -37,7 +37,7 @@ export const manage_error = (err: any, res: Response) => {
     } else {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             message: "Errore del Server.",
-            stack: err.stack
+            name: err.name
         });
     }
 }

@@ -14,7 +14,7 @@ import { adminRoutes, appRoutes } from './src/routes'
 // carico le variabili d'ambiente dal file .env
 dotenv.config();
 
-const port = process.env.PORT;
+const port = (process.env.PORT === undefined) ? 8000 : parseInt(process.env.PORT);
 
 // Inizializzazione del database Postgres
 dbInit()
